@@ -1,19 +1,23 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
 
-import os
-
 load_dotenv()
 
 
 class Settings(BaseSettings):
-    DB_HOST: str = os.getenv("DB_HOST")
-    DB_NAME: str = os.getenv("DB_NAME")
-    DB_USER: str = os.getenv("DB_USER")
-    DB_PASS: str = os.getenv("DB_PASS")
-    DB_PORT: int = os.getenv("DB_PORT")
-    FIRST_SECRET: str = os.getenv("FIRST_SECRET")
-    SECOND_SECRET: str = os.getenv("SECOND_SECRET")
+    DB_HOST: str
+    DB_NAME: str
+    DB_USER: str
+    DB_PASS: str
+    DB_PORT: int
+    FIRST_SECRET: str
+    SECOND_SECRET: str
+
+    @property
+    def get_connection_line(self):
+        return f"postgresql+psycopg2://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+
+    model_config = SettingsConfigDict(env_file=".env")
 
 
 settings = Settings()

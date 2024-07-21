@@ -19,5 +19,5 @@ class State(rx.State):
         return rx.redirect("/")
 
     @rx.var
-    def logged_in(self):
+    def logged_in(self) -> bool:
         return self.user is not None

@@ -1,6 +1,6 @@
 import reflex as rx
 
-from .common import make_input_with_icon, box_with_text
+from .common import make_input, box_with_text
 
 from ..utils.state.auth import AuthState
 from ..utils.config import LanguageConfig, language_data
@@ -27,17 +27,17 @@ def register_page() -> rx.Component:
                 spacing="5",
                 width="100%",
             ),
-            make_input_with_icon(LanguageConfig.language["register"]["email_text"],
-                                 LanguageConfig.language["register"]["email_placeholder"],
-                                 rx.icon("user"), AuthState.set_email),
-            make_input_with_icon(
+            make_input(LanguageConfig.language["register"]["email_text"],
+                       LanguageConfig.language["register"]["email_placeholder"],
+                       AuthState.set_email),
+            make_input(
                 LanguageConfig.language["register"]["password_text"],
                 LanguageConfig.language["register"]["password_placeholder"],
-                rx.icon("lock"), AuthState.set_password),
-            make_input_with_icon(
+                AuthState.set_password, True),
+            make_input(
                 LanguageConfig.language["register"]["repeat_password_text"],
                 LanguageConfig.language["register"]["repeat_password_placeholder"],
-                rx.icon("lock"), AuthState.set_confirm_password),
+                AuthState.set_confirm_password, True),
             box_with_text(
                 LanguageConfig.language["register"]["confirm_with_rules"]),
             rx.button(LanguageConfig.language["register"]["button_text"], size="3",
