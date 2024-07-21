@@ -1,5 +1,4 @@
 import reflex as rx
-from typing import List, Optional
 from sqlmodel import select
 
 from .base import State, User
@@ -9,7 +8,7 @@ from time_management.database.models import Task
 
 
 class TaskState(AuthState):
-    tasks: List["Task"] = []
+    tasks: list[Task] = []
 
     add_task_modal_open: bool = False
     is_registration: bool = True
@@ -21,7 +20,12 @@ class TaskState(AuthState):
     new_task_urgency: int = 0
 
     def load_tasks(self):
-        self.tasks = []
+        with rx.session() as session:
+            tasks = session.exec(
+                select(Task)
+            ).all()
+
+            self.tasks = tasks
 
     def add_task(self):
         print("111")
