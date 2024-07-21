@@ -6,20 +6,18 @@ from sqlmodel import Field, Relationship
 
 
 class User(rx.Model, table=True):
-    id: int = Field(primary_key=True)
     name: str
     email: str
     password: str
     registered_at: datetime.datetime = datetime.datetime.now(tz=datetime.timezone.utc)
 
     status: Optional["Status"] = Relationship(back_populates='user')
-    project: Optional["Tag"] = Relationship(back_populates='user')
-    tags: Optional[List["Tag"]] = Relationship(back_populates='user')
+    project: Optional["Project"] = Relationship(back_populates='user')
+    tags: List["Tag"] = Relationship(back_populates='user')
     tasks: Optional[List["Task"]] = Relationship(back_populates='user')
 
 
 class Status(rx.Model, table=True):
-    id: int = Field(primary_key=True)
     name: str
     urgency: int = 0
     color: str = "#505050"
@@ -27,11 +25,10 @@ class Status(rx.Model, table=True):
     user_id: int = Field(foreign_key="user.id")
 
     user: User = Relationship(back_populates="status")
-    tasks: Optional[List["Task"]] = Relationship(back_populates="status")
+    tasks: List["Task"] = Relationship(back_populates="status")
 
 
 class Project(rx.Model, table=True):
-    id: int = Field(primary_key=True)
     name: str
     desc: Optional[str] = None
     color: str = "#505050"
@@ -39,7 +36,7 @@ class Project(rx.Model, table=True):
     user_id: int = Field(foreign_key="user.id")
 
     user: User = Relationship(back_populates="project")
-    tasks: Optional[List["Task"]] = Relationship(back_populates="project")
+    tasks: List["Task"] = Relationship(back_populates="project")
 
 
 class TagTaskLink(rx.Model, table=True):
@@ -48,7 +45,6 @@ class TagTaskLink(rx.Model, table=True):
 
 
 class Tag(rx.Model, table=True):
-    id: int = Field(primary_key=True)
     name: str
     desc: Optional[str] = None
     color: str = "#505050"
@@ -60,7 +56,6 @@ class Tag(rx.Model, table=True):
 
 
 class Task(rx.Model, table=True):
-    id: int = Field(primary_key=True)
     name: str
     desc: Optional[str] = None
     color: str = "#505050"

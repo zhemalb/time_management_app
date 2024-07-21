@@ -1,7 +1,7 @@
 import reflex as rx
+from sqlmodel import select
 
 from .base import State, User
-from time_management.database.core import get_user_with_email, add_new_user
 
 
 class AuthState(State):
@@ -11,15 +11,28 @@ class AuthState(State):
     confirm_password: str
 
     def signup(self):
-        if self.password != self.confirm_password:
-            return rx.window_alert("Пароли не совпадают")
-
-        if get_user_with_email(self.email):
-            return rx.window_alert("Пользователь с таким email уже зарегистрирован")
-
-        self.user = User(email=self.email, username=self.username, password=self.password)
         with rx.session() as session:
+            if self.password != self.confirm_password:
+                return rx.window_alert("Пароли не совпадают")
+
+            if session.exec(select(User).where(User.email == self.email)).first():
+                return rx.window_alert("Пользователь с таким email уже зарегистрирован")
+
+            self.user = User(email=self.email, name=self.username, password=self.password)
             session.add(self.user)
+            session.expire_on_commit = False
             session.commit()
-        
-        return rx.redirect("/")
+
+            return rx.redirect("/")
+
+    def login(self):
+        with rx.session() as session:
+            origin_user = session.exec(
+                select(User).where(User.email == self.email)
+            ).first()
+
+            if origin_user and origin_user.password == self.password:
+                self.user = origin_user
+                return rx.redirect("/")
+            else:
+                return rx.window_alert("Неправильный email или пароль")

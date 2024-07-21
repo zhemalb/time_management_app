@@ -17,7 +17,7 @@ def index():
     return render_footer()
 
 
-@rx.page("/register")
+@rx.page("/test")
 def login():
     return register_page()
 

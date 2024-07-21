@@ -126,15 +126,15 @@ def render_main_component(is_registration: bool):
             border_radius="0px 0px 10px 10px"
         ),
         rx.vstack(
-            make_input("Имя пользователя", "Введите имя пользователя", TaskState.set_username),
             rx.cond(
                 is_registration,
-                make_input("Электронная почта", "Введите адрес электронной почты", TaskState.set_email),
-                make_input("Пароль", "Введите пароль", TaskState.set_password, True),
+                make_input("Имя пользователя", "Введите имя пользователя", TaskState.set_username),
             ),
+            make_input("Электронная почта", "Введите адрес электронной почты", TaskState.set_email),
+            make_input("Пароль", "Введите пароль", TaskState.set_password, True),
             rx.cond(
                 is_registration,
-                make_input("Пароль", "Введите пароль", TaskState.set_password, True),
+                make_input("Повторите пароль", "Снова введите пароль", TaskState.set_confirm_password, True),
                 render_remember_me("Запомнить", "хуй"),
             ),
             rx.cond(
@@ -142,8 +142,8 @@ def render_main_component(is_registration: bool):
                 render_agreement("111", "222", "333"),
                 rx.box()
             ),
-            render_event_trigger(is_registration, TaskState.signup, TaskState.signup),
-            render_vk_button(is_registration, TaskState.signup, TaskState.signup),
+            render_event_trigger(is_registration, TaskState.signup, TaskState.login),
+            render_vk_button(is_registration, TaskState.signup, TaskState.login),
             render_footer(is_registration, "huy", "pizda", "zalupa", "kiska"),
             width="100%",
             padding="2em",
@@ -160,21 +160,25 @@ def render_main_component(is_registration: bool):
     )
 
 
-@rx.page("/test", on_load=TaskState.load_tasks)
-def index() -> rx.Component:
+@rx.page("/register", on_load=TaskState.load_tasks)
+def register() -> rx.Component:
     """Главная страница приложения"""
-    return rx.cond(
-        TaskState.logged_in,
-        tasks_page(),
-        rx.center(
-            rx.cond(
-                TaskState.is_registration,
-                render_main_component(True),
-                render_main_component(False),
-            ),
-            width="100%",
-            height="100vh",
-            bg="#f0f0f0",
-            padding="2em"
-        )
+    return rx.center(
+        render_main_component(True),
+        width="100%",
+        height="100vh",
+        bg="#f0f0f0",
+        padding="2em"
+    )
+
+
+@rx.page("/login", on_load=TaskState.load_tasks)
+def login() -> rx.Component:
+    """Главная страница приложения"""
+    return rx.center(
+        render_main_component(False),
+        width="100%",
+        height="100vh",
+        bg="#f0f0f0",
+        padding="2em"
     )
