@@ -12,7 +12,7 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 
 # todo: Need to complete this block
-@rx.page("/", on_load=AuthState.check_login)
+@rx.page("/")
 def index():
     return render_footer()
 
