@@ -52,7 +52,7 @@ def tasks_page() -> rx.Component:
             ),
             rx.foreach(
                 TaskState.tasks,
-                lambda task: render_task(task)
+                render_task
             ),
             rx.button(
                 "+",
@@ -64,7 +64,7 @@ def tasks_page() -> rx.Component:
                 position="fixed",
                 bottom="2em",
                 right="2em",
-                # on_click=TaskState.set_add_task_modal_open(True)
+                on_click=TaskState.set_add_task_modal_open(True)
             ),
             rx.cond(
                 TaskState.add_task_modal_open,
@@ -76,34 +76,29 @@ def tasks_page() -> rx.Component:
                                 rx.vstack(
                                     rx.input(
                                         placeholder="Заголовок",
-                                        # on_change=lambda e: State.set_value("new_task_title", e.target.value)
                                         on_change=TaskState.set_new_task_title()
                                     ),
                                     rx.input(
                                         placeholder="Описание",
-                                        # on_change=lambda e: State.set_value("new_task_description", e.target.value)
                                         on_change=TaskState.set_new_task_description()
                                     ),
                                     rx.input(
                                         placeholder="Категории (через запятую)",
-                                        # on_change=lambda e: State.set_value("new_task_categories", e.target.value)
                                         on_change=TaskState.set_new_task_categories()
                                     ),
                                     rx.input(
                                         placeholder="Дата",
-                                        # on_change=lambda e: State.set_value("new_task_date", e.target.value)
                                         on_change=TaskState.set_new_task_date()
                                     ),
                                     rx.input(
                                         placeholder="Срочность",
-                                        # on_change=lambda e: State.set_value("new_task_urgency", e.target.value))
                                         on_change=TaskState.set_new_task_urgency()
                                     ),
                                     rx.button("Добавить задачу", on_click=TaskState.add_task),
                                 )
                             ),
                             rx.chakra.modal_footer(
-                                # rx.button("Закрыть", on_click=TaskState.set_add_task_modal_open(False))
+                                rx.button("Закрыть", on_click=TaskState.set_add_task_modal_open(False))
                             )
                         )
                     ),
