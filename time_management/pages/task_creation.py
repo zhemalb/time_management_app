@@ -2,6 +2,7 @@ import reflex as rx
 
 from ..utils.state.tasks import TaskState
 from ..database.models import Task, Tag
+from .beautiful_tag_selection import *
 
 
 def get_badge(tag: Tag):
@@ -50,6 +51,7 @@ def tasks_page() -> rx.Component:
                 padding="1em",
                 border_bottom="1px lightgray"
             ),
+            # items_selector(),
             rx.foreach(
                 TaskState.tasks,
                 render_task
@@ -74,6 +76,7 @@ def tasks_page() -> rx.Component:
                             rx.chakra.modal_header("Добавить задачу"),
                             rx.chakra.modal_body(
                                 rx.vstack(
+                                    items_selector(),
                                     rx.input(
                                         placeholder="Заголовок",
                                         on_change=TaskState.set_new_task_title()
@@ -81,10 +84,6 @@ def tasks_page() -> rx.Component:
                                     rx.input(
                                         placeholder="Описание",
                                         on_change=TaskState.set_new_task_description()
-                                    ),
-                                    rx.input(
-                                        placeholder="Категории (через запятую)",
-                                        on_change=TaskState.set_new_task_categories()
                                     ),
                                     rx.input(
                                         placeholder="Дата",

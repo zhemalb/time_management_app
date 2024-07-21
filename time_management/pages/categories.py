@@ -2,6 +2,7 @@ import reflex as rx
 
 from ..database.core import *
 from typing import List
+from . import beautiful_tag_selection
 
 
 def count_categories(tasks: List[Task]):
