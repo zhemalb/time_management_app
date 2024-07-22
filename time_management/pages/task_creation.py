@@ -2,11 +2,31 @@ import reflex as rx
 
 from ..utils.state.tasks import TaskState
 from ..database.models import Task, Tag
-from .beautiful_tag_selection import *
+from .beautiful_tag_selection import items_selector
+
+from .common import make_input
 
 
 def get_badge(tag: Tag):
     return rx.badge(tag.name, color_scheme="green")
+
+
+def make_header_input(title: str, placeholder: str, callback: callable, is_password: bool = False, width: str = "100%"):
+    return rx.vstack(
+        rx.text(title, color="black", font_size="14px", font_family="Open Sans", font_weight="bold"),
+        rx.chakra.input(
+            placeholder=placeholder,
+            type_="text" if not is_password else "password",
+            border="2px solid #202020",
+            border_radius="20px",
+            font_family="Open Sans",
+            font_size="14px",
+            font_weight="400",
+            on_change=callback
+        ),
+        width=width,
+        spacing="1"
+    )
 
 
 def render_task(task: Task):
@@ -26,6 +46,73 @@ def render_task(task: Task):
         border_radius="5px",
         padding="1em",
         margin_bottom="1em"
+    )
+
+
+def render_dialog_header() -> rx.Component:
+    return rx.vstack(
+        rx.vstack(
+            rx.hstack(
+                rx.dialog.close(
+                    rx.button(
+                        rx.image(
+                            src="/back_button.png",
+                            height="110%",
+                        ),
+                        display="block",
+                        bg_color="red",
+                    ),
+                ),
+                rx.text("Create new task", font_size="6vw", font_weight="700", font_family="Open Sans", color="black"),
+                rx.button(
+                    rx.image(
+                        src="/info_button.png",
+                        height="110%",
+                    ),
+                    display="block",
+                    bg_color="red",
+                ),
+                height="100%",
+                width="100%",
+                align_items="center",
+                justify="between",
+                margin="5px 5px",
+            ),
+            rx.text("You can create tasks here", font_size="16px", font_weight="300", font_family="Open Sans",
+                    color="white"),
+            width="100%",
+            height="100%",
+            align_items="center",
+            spacing="1"
+        ),
+        rx.vstack(
+            make_header_input("Task name", "Task name here", TaskState.set_new_task_title),
+            rx.hstack(
+                make_header_input("Start time", "mm.dd.yy", TaskState.set_new_task_title, width="45%"),
+                make_header_input("End time", "mm.dd.yy", TaskState.set_new_task_title, width="45%"),
+                justify="between",
+                spacing="3"
+            ),
+            width="85%",
+            height="100%",
+            margin_bottom="10px",
+            spacing="4",
+        ),
+        spacing="5",
+        bg_color="red",
+        width="100%",
+        align_items="center",
+        border_radius="0px 0px 12px 12px"
+    )
+
+
+def render_dialog_content() -> rx.Component:
+    return rx.vstack(
+        items_selector(),
+        width="100%",
+        height="100%",
+        bg_color="white",
+        margin="0px"
     )
 
 
@@ -56,57 +143,35 @@ def tasks_page() -> rx.Component:
                 TaskState.tasks,
                 render_task
             ),
-            rx.button(
-                "+",
-                color_scheme="blue",
-                variant="solid",
-                size="lg",
-                border_radius="50%",
-                padding="1em",
-                position="fixed",
-                bottom="2em",
-                right="2em",
-                on_click=TaskState.set_add_task_modal_open(True)
-            ),
-            rx.cond(
-                TaskState.add_task_modal_open,
-                rx.chakra.modal(
-                    rx.chakra.modal_overlay(
-                        rx.chakra.modal_content(
-                            rx.chakra.modal_header("Добавить задачу"),
-                            rx.chakra.modal_body(
-                                rx.vstack(
-                                    items_selector(),
-                                    rx.input(
-                                        placeholder="Заголовок",
-                                        on_change=TaskState.set_new_task_title()
-                                    ),
-                                    rx.input(
-                                        placeholder="Описание",
-                                        on_change=TaskState.set_new_task_description()
-                                    ),
-                                    rx.input(
-                                        placeholder="Дата",
-                                        on_change=TaskState.set_new_task_date()
-                                    ),
-                                    rx.input(
-                                        placeholder="Срочность",
-                                        on_change=TaskState.set_new_task_urgency()
-                                    ),
-                                    rx.button("Добавить задачу", on_click=TaskState.add_task),
-                                )
-                            ),
-                            rx.chakra.modal_footer(
-                                rx.button("Закрыть", on_click=TaskState.set_add_task_modal_open(False))
-                            )
-                        )
+            rx.dialog.root(
+                rx.dialog.trigger(
+                    rx.button(
+                        "+",
+                        color_scheme="blue",
+                        variant="solid",
+                        border_radius="50%",
+                        padding="1em",
+                        position="fixed",
+                        bottom="2em",
+                        right="2em",
+                        on_click=TaskState.set_add_task_modal_open(True)
                     ),
-                    id="add_task_modal",
-                    is_open=TaskState.add_task_modal_open
-                )
+                ),
+                rx.dialog.content(
+                    rx.vstack(
+                        render_dialog_header(),
+                        render_dialog_content(),
+                        width="100%",
+                        height="100%",
+                        magrin="0px",
+                        padding="0px",
+                    ),
+                    height="70vh",
+                    width="90vw",
+                    padding="0px",
+                ),
             ),
             width="100%",
-            padding="2em",
             bg="white",
             border_radius="10px",
         ),

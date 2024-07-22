@@ -10,7 +10,7 @@ def make_input(title: str, placeholder: str, callback: callable, is_password: bo
         rx.chakra.input(
             placeholder=placeholder,
             color="black",
-            type="text" if not is_password else "password",
+            type_="text" if not is_password else "password",
             border="1.5px solid lightgray",
             border_radius="20px",
             font_family="Open Sans",
