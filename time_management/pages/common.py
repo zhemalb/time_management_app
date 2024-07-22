@@ -186,25 +186,3 @@ def render_main_component(is_registration: bool):
         border_radius="12px",
         border="2px solid lightgray"
     )
-
-
-@rx.page("/register")
-def register() -> rx.Component:
-    """Главная страница приложения"""
-    return rx.center(
-        render_main_component(True),
-        width="100%",
-        height="100vh",
-        bg="white"
-    )
-
-
-@rx.page("/login")
-def login() -> rx.Component:
-    """Главная страница приложения"""
-    return rx.center(
-        render_main_component(False),
-        width="100%",
-        height="100vh",
-        bg="white"
-    )

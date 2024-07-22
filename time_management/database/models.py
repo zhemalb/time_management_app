@@ -54,6 +54,9 @@ class Tag(rx.Model, table=True):
     user: User = Relationship(back_populates="tags")
     tasks: List["Task"] = Relationship(back_populates="tags", link_model=TagTaskLink)
 
+    def __str__(self):
+        return f"{self.name} - {self.id}"
+
 
 class Task(rx.Model, table=True):
     name: str

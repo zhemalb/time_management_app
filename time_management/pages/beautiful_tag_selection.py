@@ -30,40 +30,16 @@ skills = [
 
 
 class BasicChipsState(rx.State):
-    selected_items: list[str] = ["+"]
-    left_items: list[str] = skills[:len(skills) - 1]
     show_select: bool = False
 
     actions: list[str] = ["+"]
 
     def add_selected(self, item: str):
         self.show_select = False
-        self.selected_items.append(item)
-        self.left_items.remove(item)
+        TaskState.task_tags.append(item)
 
     def remove_selected(self, item: str):
-        self.selected_items.remove(item)
-        self.left_items.append(item)
-
-
-def action_button(
-        icon: str,
-        label: str,
-        on_click: callable,
-        color_scheme: LiteralAccentColor,
-) -> rx.Component:
-    return rx.button(
-        rx.icon(icon, size=16),
-        label,
-        variant="soft",
-        size="2",
-        on_click=on_click,
-        color_scheme=color_scheme,
-        cursor="pointer",
-        border_radius="12px",
-        padding="0.5em",
-        margin="0.2em",
-    )
+        TaskState.task_tags.remove(item)
 
 
 def selected_item_chip(item: str) -> rx.Component:
@@ -71,7 +47,7 @@ def selected_item_chip(item: str) -> rx.Component:
         BasicChipsState.actions.contains(item),
         rx.badge(
             item,
-            color_scheme="green",
+            color_scheme="gray",
             **chip_props,
             border_radius="12px",
             padding="0.5em",
@@ -81,7 +57,7 @@ def selected_item_chip(item: str) -> rx.Component:
         rx.badge(
             item,
             rx.icon("circle-x", size=18),
-            color_scheme="green",
+            color_scheme="gray",
             **chip_props,
             border_radius="12px",
             padding="0.5em",
@@ -96,17 +72,19 @@ def items_selector() -> rx.Component:
         rx.cond(
             BasicChipsState.show_select,
             rx.select(
-                BasicChipsState.left_items,
-                on_change=BasicChipsState.add_selected
+                TaskState.get_available_tags,
+                on_change=BasicChipsState.add_selected,
+                width="100%"
             ),
             rx.flex(
                 rx.foreach(
-                    BasicChipsState.selected_items,
+                    TaskState.task_tags,
                     selected_item_chip,
                 ),
                 wrap="wrap",
                 spacing="2",
                 justify_content="start",
-            ),
-        )
+            )
+        ),
+        width="100%",
     )

@@ -11,8 +11,9 @@ from time_management.database.models import Task, Tag, Status, Project, TagTaskL
 
 
 class TaskState(AuthState):
-    tasks: List["Task"] = []
-    tags: List["Tag"] = []
+    tasks: list[Task] = []
+    tags: list[Tag] = []
+    tags_str: list[str] = []
 
     add_task_modal_open: bool = False
     is_registration: bool = True
@@ -26,10 +27,14 @@ class TaskState(AuthState):
     task_name: str
     task_color: str = "#505050"
     task_desc: str | None = None
-    task_tags: list[Tag]
-    task_status: Status
-    task_project: Project
+    task_tags: list[str] = ["+"]
+    task_status: Status | None = None
+    task_project: Project | None = None
     task_deadline: datetime.datetime | None = None
+
+    def initialize(self):
+        self.load_tasks()
+        self.load_tags()
 
     def load_tasks(self):
         with rx.session() as session:
@@ -59,3 +64,16 @@ class TaskState(AuthState):
             ).all()
 
             self.tags = list(tags)
+            self.tags_str = [str(tag) for tag in self.tags]
+
+    @rx.var
+    def get_available_tags(self) -> list[str]:
+        if self.user is None:
+            return []
+
+        with rx.session() as session:
+            tags = session.exec(
+                select(Tag).where(Tag.user_id == self.user.id and Tag.name not in self.task_tags)
+            ).all()
+
+            return [str(tag) for tag in tags]

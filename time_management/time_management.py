@@ -6,8 +6,9 @@ import reflex as rx
 from .pages.footer import render_footer
 from .pages.register import register_page
 from .pages.task_creation import tasks_page
+from .pages.common import render_main_component
 
-from .utils.state.auth import AuthState
+from .utils.state.tasks import TaskState
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
@@ -19,11 +20,28 @@ def index():
 
 
 @rx.page("/register")
-def login():
-    return register_page()
+def register() -> rx.Component:
+    """Главная страница приложения"""
+    return rx.center(
+        render_main_component(True),
+        width="100%",
+        height="100vh",
+        bg="white"
+    )
 
 
-@rx.page("/tasks")
+@rx.page("/login")
+def login() -> rx.Component:
+    """Главная страница приложения"""
+    return rx.center(
+        render_main_component(False),
+        width="100%",
+        height="100vh",
+        bg="white"
+    )
+
+
+@rx.page("/tasks", on_load=TaskState.initialize)
 def aaa():
     return tasks_page()
 

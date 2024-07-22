@@ -2,14 +2,18 @@ import reflex as rx
 
 
 def form_field(
-    label: str, placeholder: str, type: str, name: str
+        label: str, placeholder: str, type: str, name: str, width: str = "100%", background: str = "white"
 ) -> rx.Component:
     return rx.form.field(
         rx.flex(
-            rx.form.label(label),
+            rx.text(label, font_size="14px", font_weight="bold", font_family="Open Sans", color="black"),
             rx.form.control(
                 rx.input(
-                    placeholder=placeholder, type=type
+                    placeholder=placeholder,
+                    type=type,
+                    border_radius="10px",
+                    background_color=background,
+                    border="1px solid #202020"
                 ),
                 as_child=True,
             ),
@@ -17,7 +21,7 @@ def form_field(
             spacing="1",
         ),
         name=name,
-        width="100%",
+        width=width,
     )
 
 
