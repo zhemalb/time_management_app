@@ -27,6 +27,9 @@ class Status(rx.Model, table=True):
     user: User = Relationship(back_populates="status")
     tasks: List["Task"] = Relationship(back_populates="status")
 
+    def __str__(self):
+        return f"{self.name}"
+
 
 class Project(rx.Model, table=True):
     name: str
@@ -37,6 +40,9 @@ class Project(rx.Model, table=True):
 
     user: User = Relationship(back_populates="project")
     tasks: List["Task"] = Relationship(back_populates="project")
+
+    def __str__(self):
+        return f"{self.name}"
 
 
 class TagTaskLink(rx.Model, table=True):
@@ -55,13 +61,12 @@ class Tag(rx.Model, table=True):
     tasks: List["Task"] = Relationship(back_populates="tags", link_model=TagTaskLink)
 
     def __str__(self):
-        return f"{self.name} - {self.id}"
+        return f"{self.name}"
 
 
 class Task(rx.Model, table=True):
     name: str
     desc: Optional[str] = None
-    color: str = "#505050"
     created_at: datetime.datetime = datetime.datetime.now(tz=datetime.timezone.utc)
     deadline: Optional[datetime.datetime] = None
 
@@ -74,6 +79,6 @@ class Task(rx.Model, table=True):
     project_id: Optional[int] = Field(foreign_key="project.id")
 
     user: User = Relationship(back_populates="tasks")
-    tags: List["Tag"] = Relationship(back_populates="tasks", link_model=TagTaskLink)
+    tags: List[Tag] = Relationship(back_populates="tasks", link_model=TagTaskLink)
     project: Optional["Project"] = Relationship(back_populates="tasks")
     status: Optional["Status"] = Relationship(back_populates="tasks")

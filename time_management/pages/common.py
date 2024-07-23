@@ -21,12 +21,15 @@ def make_input(title: str, placeholder: str, callback: callable, is_password: bo
     )
 
 
-def box_with_text(text, default: bool = False):
+def box_with_text(text: str, callback: callable, default: bool = False):
     return rx.box(
         rx.checkbox(
             text,
             default_checked=default,
             spacing="2",
+            text_font="Open Sans",
+            text_size="14px",
+            on_change=callback
         ),
         width="100%",
     ),

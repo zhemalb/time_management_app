@@ -2,7 +2,8 @@ import reflex as rx
 
 
 def form_field(
-        label: str, placeholder: str, type: str, name: str, width: str = "100%", background: str = "white"
+        label: str, placeholder: str, type: str, name: str, callback: callable, width: str = "100%",
+        background: str = "white"
 ) -> rx.Component:
     return rx.form.field(
         rx.flex(
@@ -13,7 +14,12 @@ def form_field(
                     type=type,
                     border_radius="10px",
                     background_color=background,
-                    border="1px solid #202020"
+                    border="1px solid #202020",
+                    color="white",
+                    font_family="Open Sans",
+                    font_size="14px",
+                    font_weight="bold",
+                    on_change=callback
                 ),
                 as_child=True,
             ),

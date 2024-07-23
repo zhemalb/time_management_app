@@ -8,15 +8,9 @@ from .pages.register import register_page
 from .pages.task_creation import tasks_page
 from .pages.common import render_main_component
 
-from .utils.state.tasks import TaskState
+from .pages.beautiful_tag_selection import BasicChipsState
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
-
-
-# todo: Need to complete this block
-@rx.page("/")
-def index():
-    return render_footer()
 
 
 @rx.page("/register")
@@ -41,9 +35,14 @@ def login() -> rx.Component:
     )
 
 
-@rx.page("/tasks", on_load=TaskState.initialize)
-def aaa():
+@rx.page("/", on_load=BasicChipsState.initialize)
+def main_page():
     return tasks_page()
+
+
+# @rx.page("/test")
+# def test():
+#     pass
 
 
 app = rx.App(
