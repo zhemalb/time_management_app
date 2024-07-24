@@ -6,8 +6,11 @@ import reflex as rx
 from .pages.task_creation import tasks_page
 from .pages.common import render_main_component
 from .pages.settings import render_settings
+from .pages.show_all_lists import render_all_lists
 
 from .pages.beautiful_tag_selection import BasicChipsState
+
+from .utils.state.base import State
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
@@ -23,7 +26,7 @@ def register() -> rx.Component:
     )
 
 
-@rx.page("/login")
+@rx.page("/")
 def login() -> rx.Component:
     """Главная страница приложения"""
     return rx.center(
@@ -34,7 +37,7 @@ def login() -> rx.Component:
     )
 
 
-@rx.page("/", on_load=BasicChipsState.initialize)
+@rx.page("/tasks", on_load=BasicChipsState.initialize)
 def main_page():
     return tasks_page()
 
@@ -42,6 +45,11 @@ def main_page():
 @rx.page("/settings")
 def settings():
     return render_settings()
+
+
+@rx.page("/lists")
+def lists():
+    return render_all_lists()
 
 
 # @rx.page("/test")

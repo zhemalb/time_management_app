@@ -1,4 +1,5 @@
 import reflex as rx
+import datetime
 
 # from ..utils.state.tasks import BasicChipsState
 from ..database.models import Task, Tag
@@ -77,12 +78,19 @@ def render_task(task: Task):
                 ),
                 rx.vstack(
                     rx.hstack(
-                        rx.text("15/07/2024 - 15:15", color="black", font_style="Open Sans", font_size="16px",
-                                font_weight="bold"),
-                        rx.text(BasicChipsState.tasks_status[task.id.to_int()].name, color="black",
-                                font_style="Open Sans",
-                                font_size="16px",
-                                font_weight="bold"),
+                        rx.cond(
+                            task.deadline is not None,
+                            rx.text(task.deadline, color="black", font_style="Open Sans",
+                                    font_size="16px",
+                                    font_weight="bold"),
+                        ),
+                        rx.cond(
+                            BasicChipsState.tasks_status[task.id.to_int()] is not None,
+                            rx.text(BasicChipsState.tasks_status[task.id.to_int()].name, color="black",
+                                    font_style="Open Sans",
+                                    font_size="16px",
+                                    font_weight="bold"),
+                        ),
                         spacing="2"
                     )
                 ),
@@ -94,9 +102,9 @@ def render_task(task: Task):
                 rx.button(
                     rx.text("...", font_size="32", font_weight="bold", font_style="Open Sans", color="black"),
                     background_color="white",
-                    on_click=BasicChipsState.toggle_edit_buttons
+                    on_click=BasicChipsState.toggle_edit_buttons(task.id)
                 ),
-                rx.cond(BasicChipsState.show_edit_buttons, task_edit_buttons(task)),
+                rx.cond(BasicChipsState.show_edit_buttons == task.id, task_edit_buttons(task)),
             ),
             padding_right="10px",
             width="100%",
@@ -146,13 +154,25 @@ def tasks_page() -> rx.Component:
                 width="100%",
                 padding="5px",
             ),
-            rx.vstack(
-                rx.foreach(
-                    BasicChipsState.tasks,
-                    render_task
+            rx.scroll_area(
+                rx.vstack(
+                    rx.flex(
+                        rx.foreach(
+                            BasicChipsState.tasks,
+                            render_task
+                        ),
+                        direction="column",
+                        width="100%",
+                        spacing="3",
+                        height="100%",
+                    ),
+                    width="100%",
+                    height="100%",
                 ),
+                scrollbars="vertical",
                 width="100%",
                 height="100%",
+                padding="5px"
             ),
             width="100%",
             bg="white",

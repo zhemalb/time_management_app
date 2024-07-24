@@ -15,8 +15,8 @@ class TaskState(AuthState):
     tasks: list[Task] = []
 
     tasks_tags: dict[int, list[Tag]] = {}
-    tasks_status: dict[int, Status] = {}
-    tasks_projects: dict[int, Project] = {}
+    tasks_status: dict[int, Optional[Status]] = {}
+    tasks_projects: dict[int, Optional[Project]] = {}
 
     tasks_count_of_tags: dict[int, int] = defaultdict(int)
 
@@ -33,12 +33,15 @@ class TaskState(AuthState):
     is_deligable: bool = False
     is_info: bool = False
     is_complex: bool = False
-    show_edit_buttons: bool = False
+    show_edit_buttons: int = 0
+    deadline: datetime.datetime | None = None
 
     task_date: str | None = None
     task_time: str | None = None
 
     def load_tasks(self):
+        self.tasks_count_of_tags.clear()
+        
         with rx.session() as session:
             tasks = session.exec(
                 select(Task).where(Task.user_id == self.user.id)
@@ -48,10 +51,15 @@ class TaskState(AuthState):
                 self.tasks_tags[task.id] = task.tags
                 self.tasks_status[task.id] = task.status
                 self.tasks_projects[task.id] = task.project
-                self.tasks.append(task)
 
                 for tag in task.tags:
                     self.tasks_count_of_tags[tag.id] += 1
+
+            self.tasks.clear()
+            for task in tasks:
+                self.tasks.append(task)
+
+        self.tasks.sort(key=lambda task: -task.deadline.toordinal() if task.deadline else 0)
 
     def add_task(self):
         with rx.session() as session:
@@ -79,17 +87,8 @@ class TaskState(AuthState):
             self.tags = list(tags)
             self.tags_str = [str(tag) for tag in self.tags]
 
-    async def toggle_edit_buttons(self):
-        self.show_edit_buttons = not self.show_edit_buttons
-
-    def update_task(self, task: Task):
-        with rx.session() as session:
-            task["name"] = self.task_name
-            task["description"] = self.task_desc
-            task["status_id"] = self.task_status.id
-            task["project_id"] = self.task_project.id
-
-            session.add(task.to_string())
-            session.commit()
-
-        return rx.redirect("/")
+    async def toggle_edit_buttons(self, num):
+        if self.show_edit_buttons != 0:
+            self.show_edit_buttons = 0
+        else:
+            self.show_edit_buttons = num

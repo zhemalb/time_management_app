@@ -13,7 +13,7 @@ def render_footer():
             height="100%",
             bg="white",
             text_align="center",
-            on_click=rx.redirect("/")
+            on_click=rx.redirect("/tasks")
         ),
         rx.button(
             rx.image(
@@ -46,6 +46,7 @@ def render_footer():
             height="100%",
             bg="white",
             text_align="center",
+            on_click=rx.redirect("/lists")
         ),
         rx.button(
             rx.image(

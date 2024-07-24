@@ -14,7 +14,7 @@ class State(rx.State):
 
     def check_login(self):
         if not self.logged_in:
-            return rx.redirect("/register")
+            return rx.redirect("/login")
 
         return rx.redirect("/")
 

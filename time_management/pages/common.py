@@ -93,10 +93,12 @@ def render_remember_me(remember_me: str, forgot_password: str):
     )
 
 
-def render_footer(is_registration: bool, have_account: str, dont_have_account: str, login: str, register: str):
+def render_footer(is_registration: bool, have_account: str, dont_have_account: str, login: str, register: str,
+                  login_link: str, register_link: str):
     return rx.text(
         have_account if is_registration else dont_have_account, ' ',
-        rx.link(login if is_registration else register, href="#", color="blue",
+        rx.link(login if is_registration else register, href=register_link if is_registration else login_link,
+                color="blue",
                 on_click=rx.redirect("/login" if is_registration else "/register")),
         text_align="center",
         width="100%",
@@ -176,7 +178,7 @@ def render_main_component(is_registration: bool):
                           LanguageConfig.language["login"]["dont_have_account"],
                           LanguageConfig.language["register"]["already_registered_action"],
                           LanguageConfig.language["login"]["dont_have_account_action"],
-                          ),
+                          "/register", "/"),
             width="100%",
             z_index="10",
             display="flex",

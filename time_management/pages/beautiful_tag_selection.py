@@ -5,6 +5,8 @@ from sqlmodel import select
 from ..database.models import Task, Tag, Status, Project, TagTaskLink
 from ..utils.state.tasks import TaskState
 
+from time_management.utils.state.base import State
+
 chip_props = {
     "radius": "full",
     "variant": "surface",
@@ -23,6 +25,12 @@ class BasicChipsState(TaskState):
 
     statuses: list[str] = []
     projects: list[str] = []
+
+    tag_name: str = ""
+    tag_desc: str = ""
+
+    status_name: str = ""
+    status_desc: str = ""
 
     def initialize(self):
         if self.user is None:
@@ -49,10 +57,34 @@ class BasicChipsState(TaskState):
             self.projects = [str(project) for project in projects]
 
     def create_task(self):
-        print(self.task_date, self.task_time)
-        task = Task(name=self.task_name, desc=self.task_desc, is_info=self.is_info, is_deligable=self.is_deligable,
-                    is_complex=self.is_complex, user_id=self.user.id, status_id=self.task_status.id,
-                    project_id=self.task_project.id)
+        if self.task_date is not None:
+            year, month, day = map(int, self.task_date.split('-'))
+
+            if self.task_time is not None:
+                hour, minute = map(int, self.task_time.split(':'))
+            else:
+                hour, minute = 0, 0
+
+            self.deadline = datetime.datetime(year, month, day, hour, minute)
+
+        if self.task_status is None:
+            if self.task_project is None:
+                task = Task(name=self.task_name, desc=self.task_desc, is_info=self.is_info,
+                            is_deligable=self.is_deligable,
+                            is_complex=self.is_complex, user_id=self.user.id, deadline=self.deadline)
+            else:
+                task = Task(name=self.task_name, desc=self.task_desc, is_info=self.is_info,
+                            is_deligable=self.is_deligable, is_complex=self.is_complex, user_id=self.user.id,
+                            project=self.task_project.id, deadline=self.deadline)
+        else:
+            if self.task_project is None:
+                task = Task(name=self.task_name, desc=self.task_desc, is_info=self.is_info,
+                            is_deligable=self.is_deligable, is_complex=self.is_complex, user_id=self.user.id,
+                            status=self.task_status.id, deadline=self.deadline)
+            else:
+                task = Task(name=self.task_name, desc=self.task_desc, is_info=self.is_info,
+                            is_deligable=self.is_deligable, is_complex=self.is_complex, user_id=self.user.id,
+                            project=self.task_project.id, status=self.task_status.id, deadline=self.deadline)
 
         with rx.session() as session:
             session.add(task)
@@ -79,7 +111,7 @@ class BasicChipsState(TaskState):
 
             self.available_tags = [str(tag) for tag in tags]
 
-        return rx.redirect("/")
+        return rx.redirect("/tasks")
 
     def select_status(self, item: str):
         with rx.session() as session:
@@ -112,8 +144,14 @@ class BasicChipsState(TaskState):
             self.add_selected(tag["name"])
 
     def initialize_state(self, task: Task):
-        self.task_status = task["status"].to_string()
-        self.task_project = task["project"].to_string()
+        self.task_name = task["name"]
+        self.task_desc = task["desc"]
+        self.deadline = task["deadline"]
+        self.is_info = task["is_info"]
+        self.is_degibile = task["is_degibile"]
+        self.is_complex = task["is_complex"]
+        self.task_status = task["status"]
+        self.task_project = task["project"]
         self.add_tags_to_default(task["tags"])
 
     def remove_selection(self):
@@ -134,10 +172,70 @@ class BasicChipsState(TaskState):
         self.is_deligable = False
         self.is_info = False
         self.is_complex = False
-        self.show_edit_buttons = False
+        self.show_edit_buttons = 0
 
         self.task_date = None
         self.task_time = None
+
+    def update_task(self, task: Task):
+        with rx.session() as session:
+            current_task = session.exec(
+                select(Task).where(Task.id == task["id"])
+            ).first()
+
+            if self.task_date is not None:
+                year, month, day = map(int, self.task_date.split('-'))
+
+                if self.task_time is not None:
+                    hour, minute = map(int, self.task_time.split(':'))
+                else:
+                    hour, minute = 0, 0
+
+                self.deadline = datetime.datetime(year, month, day, hour, minute)
+
+            current_task.deadline = self.deadline
+            current_task.name = self.task_name
+            current_task.desc = self.task_desc
+            current_task.is_info = self.is_info
+            current_task.is_degibile = self.is_deligable
+            current_task.is_complex = self.is_complex
+
+            if self.task_status is not None:
+                current_task.status_id = self.task_status["id"]
+
+            if self.task_project is not None:
+                current_task.project_id = self.task_project["id"]
+
+            session.add(current_task)
+            session.commit()
+
+            result = session.exec(
+                select(TagTaskLink).where(TagTaskLink.task_id == current_task.id)
+            ).all()
+
+            for res in result:
+                session.delete(res)
+            session.commit()
+
+            for tag in self.chosen_tags:
+                if tag == '+':
+                    continue
+
+                result = session.exec(
+                    select(Tag).where(Tag.user_id == self.user.id and Tag.name == tag)
+                ).one()
+
+                session.add(TagTaskLink(tag_id=result.id, task_id=current_task.id))
+
+            session.commit()
+
+        return rx.redirect("/tasks")
+
+    def create_status(self):
+        return
+
+    def create_tag(self):
+        return
 
 
 def selected_item_chip(item: str) -> rx.Component:

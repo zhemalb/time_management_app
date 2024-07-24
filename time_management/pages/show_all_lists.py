@@ -1,10 +1,11 @@
 import reflex as rx
+
 from .beautiful_tag_selection import BasicChipsState
 from .footer import render_footer
-from .dialog.other_creation_dialog import render_status_creation_dialog, render_tag_creation_dialog
 
 
-def make_info_button(title: str, desc: str, format_line: str, param, callback: callable, icon_tag: str):
+def render_list_button(callback: callable, icon_tag: str, title: str, desc: str, format_line: str,
+                       param):
     return rx.button(
         rx.vstack(
             rx.hstack(
@@ -25,7 +26,7 @@ def make_info_button(title: str, desc: str, format_line: str, param, callback: c
                 spacing="1"
             ),
             width="100%",
-            height="100%"
+            height="100%",
         ),
         padding="5px",
         background_color="white",
@@ -33,12 +34,11 @@ def make_info_button(title: str, desc: str, format_line: str, param, callback: c
         border="2px solid #202020",
         width="100%",
         height="100%",
-        box_shadow="5px 3px 10px black",
         on_click=callback
-    ),
+    )
 
 
-def render_settings():
+def render_all_lists():
     return rx.vstack(
         rx.vstack(
             rx.hstack(
@@ -50,8 +50,9 @@ def render_settings():
             ),
             rx.vstack(
                 rx.vstack(
-                    rx.text("Settings", font_size="28px", font_style="Open Sans", font_weight="900"),
-                    rx.text("Customize it for yourself", font_size="16px", font_style="Open Sans", font_weight="400",
+                    rx.text("All lists", font_size="28px", font_style="Open Sans", font_weight="900"),
+                    rx.text("Grouped tasks for all your purposes", font_size="16px", font_style="Open Sans",
+                            font_weight="400",
                             color="gray"),
                     align_items="left",
                     spacing="0",
@@ -67,26 +68,19 @@ def render_settings():
         rx.vstack(
             rx.center(
                 rx.grid(
-                    rx.dialog.root(
-                        rx.dialog.trigger(
-                            make_info_button("Tags", "Tags can help you with task classified",
-                                             "You already have {0} tasks",
-                                             BasicChipsState.tags.length(), BasicChipsState.initialize, "tag"),
-                        ), render_tag_creation_dialog()
-                    ),
-                    rx.dialog.root(
-                        rx.dialog.trigger(
-                            make_info_button("Statuses", "Can help assess the load of task",
-                                             "You already have {0} statuses",
-                                             BasicChipsState.statuses.length(), BasicChipsState.initialize,
-                                             "table-properties"),
-                        ), render_status_creation_dialog()
-                    ),
-                    make_info_button("Projects", "You can store tasks in projects", "You already have {0} projects",
-                                     BasicChipsState.projects.length(), BasicChipsState.initialize, "folder-git-2"),
-                    make_info_button("Lists", "You can create new or update old lists", "Work in {0}",
-                                     "progress", BasicChipsState.initialize, "settings"),
-                    columns="2",
+                    render_list_button(BasicChipsState.initialize, "shopping-basket", "Basket",
+                                       "Storage of all your tasks",
+                                       "{0} tasks in your bucket", 13),
+                    render_list_button(BasicChipsState.initialize, "tag", "Long Term Tasks",
+                                       "You can think about they later",
+                                       "You have {0} long term tasks", 13),
+                    render_list_button(BasicChipsState.initialize, "users", "Delegable Tasks",
+                                       "Someone else will make it for you",
+                                       "You have {0} delegable tasks", 13),
+                    render_list_button(BasicChipsState.initialize, "clock-5", "Postponed Tasks",
+                                       "Someday then definitely...",
+                                       "You have {0} postponed tasks", 13),
+                    columns="1",
                     spacing="5",
                     width="90%",
                     height="100%",
@@ -100,4 +94,4 @@ def render_settings():
         render_footer(),
         width="100%",
         height="100%"
-    )
+    ),
