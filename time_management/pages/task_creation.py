@@ -10,12 +10,27 @@ from .footer import render_footer
 
 def get_badge(tag: Tag):
     return rx.badge(
-        tag.name,
-        background_color=tag.color,
-        color="black",
-        font_style="Open Sans",
-        font_size="14px",
+        rx.text(tag.name, font_style="Open Sans", font_size="14px", font_weight="bold", color="black"),
+        color=tag.color,
         padding="8px",
+        border_radius="12px",
+        border="1px solid #202020"
+    )
+
+
+def get_header_badge(tag: Tag):
+    return rx.badge(
+        rx.text(tag.name, font_style="Open Sans", font_size="14px", font_weight="bold", color="black"),
+        rx.box(
+            rx.text(BasicChipsState.tasks_count_of_tags[tag.id.to_int()], font_style="Open Sans", font_size="14px",
+                    font_weight="bold", color="white"),
+            bg=tag.color,
+            border_radius="12px",
+            padding="2px 6px",
+        ),
+        background_color="white",
+        padding="8px",
+        border="1px solid gray",
         border_radius="12px",
     )
 
@@ -45,7 +60,7 @@ def render_task(task: Task):
                         rx.vstack(
                             rx.flex(
                                 rx.foreach(
-                                    task.tags,
+                                    BasicChipsState.tasks_tags[task.id.to_int()],
                                     get_badge
                                 ),
                                 direction="row",
@@ -62,7 +77,9 @@ def render_task(task: Task):
                     rx.hstack(
                         rx.text("15/07/2024 - 15:15", color="black", font_style="Open Sans", font_size="16px",
                                 font_weight="bold"),
-                        rx.text(task.status.name, color="black", font_style="Open Sans", font_size="16px",
+                        rx.text(BasicChipsState.tasks_status[task.id.to_int()].name, color="black",
+                                font_style="Open Sans",
+                                font_size="16px",
                                 font_weight="bold"),
                         spacing="2"
                     )
@@ -98,10 +115,32 @@ def tasks_page() -> rx.Component:
                 width="100%",
             ),
             rx.vstack(
-                rx.text("Hello world", text_size="32px", text_font="Open Sans", text_weight="bold"),
+                rx.vstack(
+                    rx.text("Current Tasks", font_size="28px", font_style="Open Sans", font_weight="900"),
+                    rx.text("All your tasks to do here", font_size="16px", font_style="Open Sans", font_weight="400",
+                            color="gray"),
+                    align_items="left",
+                    spacing="0",
+                    padding="0px",
+                ),
+                rx.scroll_area(
+                    rx.vstack(
+                        rx.flex(
+                            rx.foreach(
+                                BasicChipsState.tags,
+                                get_header_badge
+                            ),
+                            direction="row",
+                        ),
+                        width="100%",
+                    ),
+                    scrollbars="horizontal",
+                    style={"width": 90},
+                    width="100%",
+                    padding="5px"
+                ),
                 width="100%",
                 padding="5px",
-                align_items="center",
             ),
             rx.vstack(
                 rx.foreach(

@@ -25,7 +25,7 @@ class Status(rx.Model, table=True):
     user_id: int = Field(foreign_key="user.id")
 
     user: User = Relationship(back_populates="status")
-    tasks: List["Task"] = Relationship(back_populates="status")
+    tasks: Optional[List["Task"]] = Relationship(back_populates="status")
 
     def __str__(self):
         return f"{self.name}"
@@ -39,7 +39,7 @@ class Project(rx.Model, table=True):
     user_id: int = Field(foreign_key="user.id")
 
     user: User = Relationship(back_populates="project")
-    tasks: List["Task"] = Relationship(back_populates="project")
+    tasks: Optional[List["Task"]] = Relationship(back_populates="project")
 
     def __str__(self):
         return f"{self.name}"
@@ -75,8 +75,8 @@ class Task(rx.Model, table=True):
     is_complex: bool = False
 
     user_id: int = Field(foreign_key="user.id")
-    status_id: Optional[int] = Field(foreign_key="status.id")
-    project_id: Optional[int] = Field(foreign_key="project.id")
+    status_id: Optional[int] = Field(default=None, foreign_key="status.id")
+    project_id: Optional[int] = Field(default=None, foreign_key="project.id")
 
     user: User = Relationship(back_populates="tasks")
     tags: List[Tag] = Relationship(back_populates="tasks", link_model=TagTaskLink)

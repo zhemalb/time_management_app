@@ -25,6 +25,9 @@ class BasicChipsState(TaskState):
     projects: list[str] = []
 
     def initialize(self):
+        if self.user is None:
+            return
+        
         self.load_tasks()
         self.load_tags()
 
@@ -56,7 +59,8 @@ class BasicChipsState(TaskState):
             session.commit()
 
             for tag in self.chosen_tags:
-                if tag == '+': continue
+                if tag == '+':
+                    continue
 
                 result = session.exec(
                     select(Tag).where(Tag.user_id == self.user.id and Tag.name == tag)
@@ -65,19 +69,6 @@ class BasicChipsState(TaskState):
                 session.add(TagTaskLink(tag_id=result.id, task_id=task.id))
 
             session.commit()
-
-        # name: str
-        # desc: Optional[str] = None
-        # created_at: datetime.datetime = datetime.datetime.now(tz=datetime.timezone.utc)
-        # deadline: Optional[datetime.datetime] = None
-        #
-        # is_info: bool = False
-        # is_degibile: bool = False
-        # is_complex: bool = False
-        #
-        # user_id: int = Field(foreign_key="user.id")
-        # status_id: Optional[int] = Field(foreign_key="status.id")
-        # project_id: Optional[int] = Field(foreign_key="project.id")
 
     def select_status(self, item: str):
         with rx.session() as session:

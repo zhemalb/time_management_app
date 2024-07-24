@@ -3,10 +3,9 @@ import sys
 
 import reflex as rx
 
-from .pages.footer import render_footer
-from .pages.register import register_page
 from .pages.task_creation import tasks_page
 from .pages.common import render_main_component
+from .pages.settings import render_settings
 
 from .pages.beautiful_tag_selection import BasicChipsState
 
@@ -38,6 +37,11 @@ def login() -> rx.Component:
 @rx.page("/", on_load=BasicChipsState.initialize)
 def main_page():
     return tasks_page()
+
+
+@rx.page("/settings")
+def settings():
+    return render_settings()
 
 
 # @rx.page("/test")
