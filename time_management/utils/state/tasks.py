@@ -33,6 +33,7 @@ class TaskState(AuthState):
     is_deligable: bool = False
     is_info: bool = False
     is_complex: bool = False
+    show_edit_buttons: bool = False
 
     task_date: str | None = None
     task_time: str | None = None
@@ -54,7 +55,7 @@ class TaskState(AuthState):
 
     def add_task(self):
         with rx.session() as session:
-            current_task = Task(name=self.task_name, description=self.task_desc, color=self.task_color,
+            current_task = Task(name=self.task_name, desc=self.task_desc,
                                 deadline=self.task_deadline, user_id=self.user.id, status_id=self.task_status.id,
                                 project_id=self.task_project.id)
             session.add(current_task)
@@ -77,3 +78,18 @@ class TaskState(AuthState):
 
             self.tags = list(tags)
             self.tags_str = [str(tag) for tag in self.tags]
+
+    async def toggle_edit_buttons(self):
+        self.show_edit_buttons = not self.show_edit_buttons
+
+    def update_task(self, task: Task):
+        with rx.session() as session:
+            task["name"] = self.task_name
+            task["description"] = self.task_desc
+            task["status_id"] = self.task_status.id
+            task["project_id"] = self.task_project.id
+
+            session.add(task.to_string())
+            session.commit()
+
+        return rx.redirect("/")

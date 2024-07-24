@@ -4,6 +4,8 @@ import reflex as rx
 from ..database.models import Task, Tag
 
 from .date_time_select import *
+from .task_edit import task_edit_buttons
+
 from .beautiful_tag_selection import BasicChipsState
 from .footer import render_footer
 
@@ -52,7 +54,7 @@ def render_task(task: Task):
                         spacing="4",
                     ),
                     scrollbars="vertical",
-                    max_height="10%",
+                    style={"height": 30},
                     width="90%"
                 ),
                 rx.vstack(
@@ -92,7 +94,9 @@ def render_task(task: Task):
                 rx.button(
                     rx.text("...", font_size="32", font_weight="bold", font_style="Open Sans", color="black"),
                     background_color="white",
+                    on_click=BasicChipsState.toggle_edit_buttons
                 ),
+                rx.cond(BasicChipsState.show_edit_buttons, task_edit_buttons(task)),
             ),
             padding_right="10px",
             width="100%",

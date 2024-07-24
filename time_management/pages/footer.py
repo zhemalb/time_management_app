@@ -13,6 +13,7 @@ def render_footer():
             height="100%",
             bg="white",
             text_align="center",
+            on_click=rx.redirect("/")
         ),
         rx.button(
             rx.image(
@@ -54,6 +55,7 @@ def render_footer():
             height="100%",
             bg="white",
             text_align="center",
+            on_click=rx.redirect("/settings")
         ),
         height="5%",
         justify="between",

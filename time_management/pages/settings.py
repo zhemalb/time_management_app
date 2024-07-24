@@ -3,6 +3,40 @@ from .beautiful_tag_selection import BasicChipsState
 from .footer import render_footer
 
 
+def make_info_button(title: str, desc: str, format_line: str, param, callback: callable, icon_tag: str):
+    return rx.button(
+        rx.vstack(
+            rx.hstack(
+                rx.icon(tag=icon_tag, color="black"),
+                width="100%",
+                height="100%"
+            ),
+            rx.vstack(
+                rx.text(title, font_style="Open Sans", font_weight="bold", font_size="20px",
+                        color="black"),
+                rx.text(desc, font_style="Open Sans", font_size="14px",
+                        color="black", align="left"),
+                rx.text(format_line.format(param),
+                        font_style="Open Sans", font_size="12px", color="red"),
+                width="100%",
+                height="100%",
+                padding="0px",
+                spacing="1"
+            ),
+            width="100%",
+            height="100%"
+        ),
+        padding="5px",
+        background_color="white",
+        border_radius="12px",
+        border="2px solid #202020",
+        width="100%",
+        height="100%",
+        box_shadow="5px 3px 10px black",
+        on_click=callback
+    ),
+
+
 def render_settings():
     return rx.vstack(
         rx.vstack(
@@ -32,36 +66,17 @@ def render_settings():
         rx.vstack(
             rx.center(
                 rx.grid(
-                    rx.button(
-                        rx.text("Task", font_style="Open Sans", font_size="16px", font_weight="bold", color="black"),
-                        padding="25% 0px",
-                        background_color="white",
-                        border_radius="12px",
-                        border="2px solid #202020",
-                    ),
-                    rx.button(
-                        rx.text("Project", font_style="Open Sans", font_size="16px", font_weight="bold", color="black"),
-                        padding="25% 0px",
-                        background_color="white",
-                        border_radius="12px",
-                        border="2px solid #202020",
-                    ),
-                    rx.button(
-                        rx.text("Status", font_style="Open Sans", font_size="16px", font_weight="bold", color="black"),
-                        padding="25% 0px",
-                        background_color="white",
-                        border_radius="12px",
-                        border="2px solid #202020",
-                    ),
-                    rx.button(
-                        rx.text("Other", font_style="Open Sans", font_size="16px", font_weight="bold", color="black"),
-                        padding="25% 0px",
-                        background_color="white",
-                        border_radius="12px",
-                        border="2px solid #202020",
-                    ),
+                    make_info_button("Tags", "Tags can help you with task classified", "You already have {0} tasks",
+                                     BasicChipsState.tags.length(), BasicChipsState.initialize, "tag"),
+                    make_info_button("Statuses", "Can help assess the load of task", "You already have {0} statuses",
+                                     BasicChipsState.statuses.length(), BasicChipsState.initialize,
+                                     "table-properties"),
+                    make_info_button("Projects", "You can store tasks in projects", "You already have {0} projects",
+                                     BasicChipsState.projects.length(), BasicChipsState.initialize, "folder-git-2"),
+                    make_info_button("Lists", "You can create new or update old lists", "Work in {0}",
+                                     "progress", BasicChipsState.initialize, "settings"),
                     columns="2",
-                    spacing="4",
+                    spacing="5",
                     width="90%",
                     height="100%",
                 ),

@@ -27,7 +27,7 @@ class BasicChipsState(TaskState):
     def initialize(self):
         if self.user is None:
             return
-        
+
         self.load_tasks()
         self.load_tags()
 
@@ -70,6 +70,17 @@ class BasicChipsState(TaskState):
 
             session.commit()
 
+        BasicChipsState.chosen_tags = ["+"]
+
+        with rx.session() as session:
+            tags = session.exec(
+                select(Tag).where(Tag.user_id == self.user.id)
+            ).all()
+
+            self.available_tags = [str(tag) for tag in tags]
+
+        return rx.redirect("/")
+
     def select_status(self, item: str):
         with rx.session() as session:
             result = session.exec(
@@ -95,6 +106,38 @@ class BasicChipsState(TaskState):
     def remove_selected(self, item: str):
         self.available_tags.append(item)
         self.chosen_tags.remove(item)
+
+    def add_tags_to_default(self, lst):
+        for tag in lst:
+            self.add_selected(tag["name"])
+
+    def initialize_state(self, task: Task):
+        self.task_status = task["status"].to_string()
+        self.task_project = task["project"].to_string()
+        self.add_tags_to_default(task["tags"])
+
+    def remove_selection(self):
+        self.show_select = False
+        self.chosen_tags = ["+"]
+
+        with rx.session() as session:
+            tags = session.exec(
+                select(Tag).where(Tag.user_id == self.user.id)
+            ).all()
+
+            self.available_tags = [str(tag) for tag in tags]
+
+        self.task_name = ""
+        self.task_desc = ""
+        self.task_status = None
+        self.task_project = None
+        self.is_deligable = False
+        self.is_info = False
+        self.is_complex = False
+        self.show_edit_buttons = False
+
+        self.task_date = None
+        self.task_time = None
 
 
 def selected_item_chip(item: str) -> rx.Component:

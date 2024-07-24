@@ -5,7 +5,8 @@ from ..date_time_select import form_field
 from ..common import box_with_text
 
 
-def make_header_input(title: str, placeholder: str, callback: callable, is_password: bool = False, width: str = "100%"):
+def make_header_input(title: str, placeholder: str, callback: callable, is_password: bool = False, width: str = "100%",
+                      default=""):
     return rx.vstack(
         rx.text(title, color="black", font_size="14px", font_family="Open Sans", font_weight="bold"),
         rx.chakra.input(
@@ -17,6 +18,7 @@ def make_header_input(title: str, placeholder: str, callback: callable, is_passw
             font_size="14px",
             font_weight="bold",
             color="white",
+            default_value=default,
             on_change=callback
         ),
         width=width,
@@ -24,7 +26,7 @@ def make_header_input(title: str, placeholder: str, callback: callable, is_passw
     )
 
 
-def make_text_area(title: str, placeholder: str, callback: callable):
+def make_text_area(title: str, placeholder: str, callback: callable, default=""):
     return rx.vstack(
         rx.text(title, color="black", font_size="14px", font_family="Open Sans", font_weight="bold"),
         rx.text_area(
@@ -36,6 +38,7 @@ def make_text_area(title: str, placeholder: str, callback: callable):
             font_size="14px",
             font_weight="bold",
             width="100%",
+            value=default,
             color="black",
             on_change=callback,
         ),
@@ -60,7 +63,8 @@ def render_action_button(text: str, callback: callable):
     )
 
 
-def render_select_with_text(text: str, placeholder: str, collection: list, callback: callable, width="100%"):
+def render_select_with_text(text: str, placeholder: str, collection: list, callback: callable, width="100%",
+                            default=""):
     return rx.vstack(
         rx.text(text, color="black", font_size="14px", font_family="Open Sans", font_weight="bold"),
         rx.select(
@@ -69,6 +73,7 @@ def render_select_with_text(text: str, placeholder: str, collection: list, callb
             on_change=callback,
             width="100%",
             radius="large",
+            default_value=default,
             position="popper",
         ),
         spacing="1",
@@ -88,6 +93,7 @@ def render_dialog_header() -> rx.Component:
                         ),
                         display="block",
                         bg_color="red",
+                        on_click=BasicChipsState.remove_selection
                     ),
                 ),
                 rx.text("Create new task", font_size="6vw", font_weight="700", font_family="Open Sans", color="black"),
