@@ -8,20 +8,20 @@ def render_footer():
         rx.button(
             rx.image(
                 src="/actual_tasks.png",
-                height="60%",
+                height="36px",
             ),
             height="100%",
-            bg="white",
+            bg="#7f7f7f",
             text_align="center",
             on_click=rx.redirect("/tasks")
         ),
         rx.button(
             rx.image(
                 src="/all_tasks.png",
-                height="60%",
+                height="36px",
             ),
             height="100%",
-            bg="white",
+            bg="#7f7f7f",
             text_align="center",
         ),
         rx.dialog.root(
@@ -29,11 +29,11 @@ def render_footer():
                 rx.button(
                     rx.image(
                         src="/add_new_task.png",
-                        height="60%",
+                        height="36px",
                         on_click=BasicChipsState.set_add_task_modal_open(True)
                     ),
                     height="100%",
-                    bg="white",
+                    bg="#7f7f7f",
                     align_items="center",
                 ),
             ), make_dialog_content()
@@ -41,30 +41,25 @@ def render_footer():
         rx.button(
             rx.image(
                 src="/all_lists.png",
-                height="60%",
+                height="36px",
             ),
             height="100%",
-            bg="white",
+            bg="#7f7f7f",
             text_align="center",
             on_click=rx.redirect("/lists")
         ),
         rx.button(
             rx.image(
                 src="/projects.png",
-                height="60%",
+                height="36px",
             ),
             height="100%",
-            bg="white",
+            bg="#7f7f7f",
             text_align="center",
             on_click=rx.redirect("/settings")
         ),
-        height="5%",
         justify="between",
-        bg_color="white",
-        border_radius="12px 12px 0px 0px",
-        border_top="2px solid gray",
+        bg_color="#7f7f7f",
         width="100%",
-        position="absolute",
-        bottom="0",
-        left="0"
+        padding="10px 0px"
     )

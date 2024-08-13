@@ -2,7 +2,6 @@ import reflex as rx
 from time_management.database.models import Task
 
 from .beautiful_tag_selection import BasicChipsState
-from .dialog.dialog_edit_task import make_dialog_content
 
 
 def task_edit_buttons(task: Task):
@@ -15,7 +14,7 @@ def task_edit_buttons(task: Task):
                     on_click=BasicChipsState.initialize_state(task)
                 ),
             ),
-            make_dialog_content(task),
+            rx.vstack(),  # заглушка
             display="flex"
         ),
         rx.button(

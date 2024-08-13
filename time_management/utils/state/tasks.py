@@ -31,7 +31,6 @@ class TaskState(AuthState):
     task_status: Status | None = None
     task_project: Project | None = None
     is_deligable: bool = False
-    is_info: bool = False
     is_complex: bool = False
     show_edit_buttons: int = 0
     deadline: datetime.datetime | None = None
@@ -41,7 +40,7 @@ class TaskState(AuthState):
 
     def load_tasks(self):
         self.tasks_count_of_tags.clear()
-        
+
         with rx.session() as session:
             tasks = session.exec(
                 select(Task).where(Task.user_id == self.user.id)

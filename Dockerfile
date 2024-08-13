@@ -1,18 +1,7 @@
-FROM python:latest
+FROM python:3.12
+WORKDIR /app
 
 COPY requirements.txt requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+RUN python -m pip install --upgrade pip && pip install -r requirements.txt
 
 COPY . .
-
-ENTRYPOINT ["source"]
-CMD [".venv/bin/activate"]
-
-ENTRYPOINT ["reflex"]
-CMD ["db", "makemigrations"]
-
-ENTRYPOINT ["reflex"]
-CMD ["db", "migrate"]
-
-ENTRYPOINT ["reflex"]
-CMD ["run"]

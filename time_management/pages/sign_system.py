@@ -99,7 +99,7 @@ def render_footer(is_registration: bool, have_account: str, dont_have_account: s
         have_account if is_registration else dont_have_account, ' ',
         rx.link(login if is_registration else register, href=register_link if is_registration else login_link,
                 color="blue",
-                on_click=rx.redirect("/login" if is_registration else "/register")),
+                on_click=rx.redirect("/" if is_registration else "/register")),
         text_align="center",
         width="100%",
         color="black",

@@ -23,14 +23,55 @@ class BasicChipsState(TaskState):
     available_tags: list[str] = []
     actions: list[str] = ["+"]
 
-    statuses: list[str] = []
-    projects: list[str] = []
+    statuses: list[Status] = []
+    projects: list[Project] = []
 
     tag_name: str = ""
     tag_desc: str = ""
 
     status_name: str = ""
-    status_desc: str = ""
+    status_color: str = "777777"
+    status_urgency: int = 5
+
+    selected_status: Status | None = None
+    selected_project: Project | None = None
+
+    def change_status_open(self, value: bool):
+        if not value:
+            self.status_urgency, self.status_name, self.status_color = 5, "", "#777777"
+
+    @rx.var
+    def get_status_line(self) -> str:
+        if self.selected_status is None:
+            return "Статус"
+
+        return self.selected_status['name']
+
+    @rx.var
+    def get_project_line(self) -> str:
+        if self.selected_project is None:
+            return "Проект"
+
+        return self.selected_project['name']
+
+    @rx.var
+    def urgency(self):
+        return self.status_urgency
+
+    def create_status(self):
+        if self.status_name == "":
+            return
+
+        with rx.session() as session:
+            if session.exec(select(Status).where(Status.name == self.status_name)).one_or_none() is not None:
+                return
+
+            new_status = Status(name=self.status_name, urgency=self.status_urgency, color=self.status_color,
+                                user_id=self.user.id)
+            session.add(new_status)
+            session.commit()
+
+            self.initialize()
 
     def initialize(self):
         if self.user is None:
@@ -38,14 +79,11 @@ class BasicChipsState(TaskState):
 
         self.load_tasks()
         self.load_tags()
+        self.update_statuses()
 
         with rx.session() as session:
             tags = session.exec(
                 select(Tag).where(Tag.user_id == self.user.id)
-            ).all()
-
-            statuses = session.exec(
-                select(Status).where(Status.user_id == self.user.id)
             ).all()
 
             projects = session.exec(
@@ -53,8 +91,21 @@ class BasicChipsState(TaskState):
             ).all()
 
             self.available_tags = [str(tag) for tag in tags]
-            self.statuses = [str(status) for status in statuses]
-            self.projects = [str(project) for project in projects]
+            self.projects = list(projects)
+
+    def update_statuses(self):
+        if self.user is None:
+            return
+
+        with rx.session() as session:
+            statuses = session.exec(
+                select(Status).where(Status.user_id == self.user.id)
+            ).all()
+
+            self.statuses = list(statuses)
+
+        for status in self.statuses:
+            print(status.name)
 
     def create_task(self):
         if self.task_date is not None:
@@ -67,24 +118,26 @@ class BasicChipsState(TaskState):
 
             self.deadline = datetime.datetime(year, month, day, hour, minute)
 
-        if self.task_status is None:
-            if self.task_project is None:
-                task = Task(name=self.task_name, desc=self.task_desc, is_info=self.is_info,
-                            is_deligable=self.is_deligable,
+        if self.selected_status is None:
+            if self.selected_project is None:
+                task = Task(name=self.task_name, desc=self.task_desc, is_deligable=self.is_deligable,
                             is_complex=self.is_complex, user_id=self.user.id, deadline=self.deadline)
             else:
-                task = Task(name=self.task_name, desc=self.task_desc, is_info=self.is_info,
-                            is_deligable=self.is_deligable, is_complex=self.is_complex, user_id=self.user.id,
-                            project=self.task_project.id, deadline=self.deadline)
+                task = Task(name=self.task_name, desc=self.task_desc, is_deligable=self.is_deligable,
+                            is_complex=self.is_complex, user_id=self.user.id,
+                            project_id=self.selected_project["id"], deadline=self.deadline)
         else:
-            if self.task_project is None:
-                task = Task(name=self.task_name, desc=self.task_desc, is_info=self.is_info,
-                            is_deligable=self.is_deligable, is_complex=self.is_complex, user_id=self.user.id,
-                            status=self.task_status.id, deadline=self.deadline)
+            if self.selected_project is None:
+                task = Task(name=self.task_name, desc=self.task_desc, is_deligable=self.is_deligable,
+                            is_complex=self.is_complex, user_id=self.user.id,
+                            status_id=self.selected_status["id"], deadline=self.deadline)
             else:
-                task = Task(name=self.task_name, desc=self.task_desc, is_info=self.is_info,
-                            is_deligable=self.is_deligable, is_complex=self.is_complex, user_id=self.user.id,
-                            project=self.task_project.id, status=self.task_status.id, deadline=self.deadline)
+                print(self.task_name, self.task_desc, self.is_deligable, self.is_complex, self.selected_project['id'],
+                      self.selected_status['id'], self.deadline)
+                task = Task(name=self.task_name, desc=self.task_desc, is_deligable=self.is_deligable,
+                            is_complex=self.is_complex, user_id=self.user.id,
+                            project_id=self.selected_project["id"], status_id=self.selected_status["id"],
+                            deadline=self.deadline)
 
         with rx.session() as session:
             session.add(task)
@@ -231,9 +284,6 @@ class BasicChipsState(TaskState):
 
         return rx.redirect("/tasks")
 
-    def create_status(self):
-        return
-
     def create_tag(self):
         return
 
@@ -288,5 +338,5 @@ def items_selector() -> rx.Component:
                 justify_content="start",
             )
         ),
-        width="100%",
+        width="90%",
     )

@@ -1,31 +1,36 @@
-# Use postgres/example user/password credentials
-version: '3.9'
+name: reflex_application
 
 services:
-  app:
-    build: .
-    ports:
-      - 3001:3000
-
-  db:
+  postgres:
     image: postgres
-    restart: always
-    # shared memory limit when using docker-compose
-    shm_size: 128mb
-    # or set shared memory limit when deploy via swarm stack
-    #volumes:
-    #  - type: tmpfs
-    #    target: /dev/shm
-    #    tmpfs:
-    #      size: 134217728 # 128*2^20 bytes = 128Mb
+    container_name: postgresql
     environment:
-      POSTGRES_PASSWORD: "example"
+      POSTGRES_PASSWORD: "admin"
+      POSTGRES_USER: "admin"
+      POSTGRES_DB: "postgres"
+    volumes:
+      - new_postgres_volume:/var/lib/postgresql/data
     ports:
-      - 5432:5432
+      - "5432:5432"
+    networks:
+      - mynetwork
 
-  adminer:
-    image: adminer
-    restart: always
+  app:
+    image: reflex_app
+    container_name: time_management
+    depends_on:
+      - postgres
+    networks:
+      - mynetwork
     ports:
-      - 8000:8080
+      - "3000:3000"
+      - "8000:8000"
+    stdin_open: true
+    tty: true
 
+volumes:
+  new_postgres_volume:
+
+networks:
+  mynetwork:
+    driver: bridge

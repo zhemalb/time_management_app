@@ -10,8 +10,7 @@ class Settings(BaseSettings):
     DB_USER: str
     DB_PASS: str
     DB_PORT: int
-    FIRST_SECRET: str
-    SECOND_SECRET: str
+    BOT_TOKEN: str
 
     @property
     def get_connection_line(self):

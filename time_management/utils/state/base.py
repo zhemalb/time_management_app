@@ -1,11 +1,15 @@
 import reflex as rx
 from typing import Optional
 
+from sqlmodel import select
+
 from time_management.database.models import User
+from time_management.database.database import sql_execute
 
 
 class State(rx.State):
-    user: Optional[User] = None
+    user: Optional[User] = rx.session().exec(select(User).where(User.id == 1)).one()
+
     settings: Optional[dict] = None
 
     def logout(self):
