@@ -87,8 +87,12 @@ def render_task(task: Task):
                 ),
                 rx.vstack(
                     rx.hstack(
-                        rx.text("15/07/2024 - 15:15", color="white", font_style="Open Sans", font_size="16px",
-                                font_weight="bold"),
+                        rx.cond(
+                            task.deadline is not None,
+                            rx.text("test deadline value", color="white", font_style="Open Sans",
+                                    font_size="16px",
+                                    font_weight="bold"),
+                        ),
                         rx.text(BasicChipsState.tasks_status[task.id.to_int()].name, color="white",
                                 font_style="Open Sans",
                                 font_size="16px",
@@ -163,7 +167,7 @@ def tasks_page() -> rx.Component:
                 rx.scroll_area(
                     rx.flex(
                         rx.foreach(
-                            BasicChipsState.tasks,
+                            BasicChipsState.actual_tasks_list,
                             render_task
                         ),
                         direction="column",

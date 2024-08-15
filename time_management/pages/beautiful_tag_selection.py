@@ -42,9 +42,21 @@ class BasicChipsState(TaskState):
     selected_status: Status | None = None
     selected_project: Project | None = None
 
+    actual_tasks_list: list[Task] = []
+    nearst_tasks: int = 7
+
     chosen_project: Project | None = rx.session().exec(
-        select(Project).where(Project.id == 1)
-    ).one()
+        select(Project).where(Project.id == 3)
+    ).one_or_none()
+
+    def load_long_terms_tasks(self):
+        with rx.session() as session:
+            data = list(session.exec(
+                select(Task)
+            ).all())
+
+            self.actual_tasks_list = [task for task in data if task.deadline is not None and datetime.timedelta(
+                task.deadline) - datetime.timedelta(datetime.datetime.now()) <= self.nearst_tasks]
 
     def change_status_open(self, value: bool):
         if not value:
@@ -183,6 +195,8 @@ class BasicChipsState(TaskState):
         self.load_tasks()
         self.load_tags()
         self.update_statuses()
+
+        self.actual_tasks_list = self.tasks
 
         with rx.session() as session:
             tags = session.exec(

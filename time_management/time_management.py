@@ -88,10 +88,19 @@ def statuses():
     )
 
 
+@rx.page("/long_term_tasks", on_load=BasicChipsState.load_long_terms_tasks)
+def long_term_tasks():
+    return rx.center(
+        tasks_page(),
+        width="100%",
+        height="100vh",
+        bg="#191919"
+    )
+
+
 # @rx.page("/projects")
 # def projects():
 #     return render_projects_page()
-
 
 @rx.page("/lists")
 def lists():
