@@ -39,7 +39,7 @@ class Project(rx.Model, table=True):
     user_id: int = Field(foreign_key="user.id")
 
     user: User = Relationship(back_populates="project")
-    tasks: Optional[List["Task"]] = Relationship(back_populates="project")
+    tasks: List["Task"] = Relationship(back_populates="project")
 
     def __str__(self):
         return f"{self.name}"

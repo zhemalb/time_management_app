@@ -66,8 +66,9 @@ def trigger_empty_filled_button_with_icon(value: str, icon: str):
     )
 
 
-def empty_text_area(placeholder: str, callback: callable):
+def empty_text_area(value: str, placeholder: str, callback: callable):
     return rx.chakra.text_area(
+        value=value,
         placeholder=placeholder,
         on_change=callback,
         variant="unstyled",

@@ -69,7 +69,7 @@ def make_dialog_content() -> rx.Component:
                 ),
                 rx.vstack(
                     rx.vstack(
-                        empty_text_area("Описание", BasicChipsState.set_task_desc),
+                        empty_text_area("", "Описание", BasicChipsState.set_task_desc),
                         width="90%",
                     ),
                     align_items="center",

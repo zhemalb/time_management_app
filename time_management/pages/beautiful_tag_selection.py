@@ -33,12 +33,114 @@ class BasicChipsState(TaskState):
     status_color: str = "777777"
     status_urgency: int = 5
 
+    project_name: str = ""
+    project_desc: str = ""
+    project_color: str = "#777777"
+    project_tasks: list[Task] = []
+    project_available_tasks: list[Task] = []
+
     selected_status: Status | None = None
     selected_project: Project | None = None
+
+    chosen_project: Project | None = rx.session().exec(
+        select(Project).where(Project.id == 1)
+    ).one()
 
     def change_status_open(self, value: bool):
         if not value:
             self.status_urgency, self.status_name, self.status_color = 5, "", "#777777"
+
+    def initialize_project(self):
+        self.project_name = ""
+        self.project_desc = ""
+        self.project_color = "#777777"
+
+    def choose_project(self, project: Project):
+        self.chosen_project = project
+        self.project_name = project["name"]
+        self.project_desc = project["desc"]
+
+        with rx.session() as session:
+            data = session.exec(
+                select(Task).where(Task.project_id == self.chosen_project["id"])
+            ).all()
+
+            self.project_tasks = list(data)
+            for task in self.project_tasks:
+                for available_task in self.project_available_tasks:
+                    if task.id == available_task.id:
+                        self.project_available_tasks.remove(available_task)
+
+        return rx.redirect(f"/projects/{project["id"]}")
+
+    def remove_task_from_project(self, task: Task):
+        for task_ in self.project_tasks:
+            if task_.id == task["id"]:
+                self.project_tasks.remove(task_)
+                self.project_available_tasks.append(task_)
+                return
+
+    def add_task_to_project(self, task: Task):
+        for task_ in self.project_available_tasks:
+            if task_.id == task["id"]:
+                self.project_available_tasks.remove(task_)
+                self.project_tasks.append(task_)
+                return
+
+    def create_project(self):
+        current_project = Project(name=self.project_name, desc=self.project_desc, color=self.project_color,
+                                  user_id=self.user.id)
+
+        with rx.session() as session:
+            session.add(current_project)
+            session.commit()
+
+            for task in self.project_tasks:
+                task.project_id = current_project.id
+                session.add(task)
+
+            session.commit()
+
+        return rx.redirect("/projects")
+
+    def update_project(self):
+        id_ = self.chosen_project["id"]
+
+        with rx.session() as session:
+            current_project = session.exec(
+                select(Project).where(Project.id == id_)
+            ).one()
+
+            current_project.name = self.project_name
+            current_project.desc = self.project_desc
+
+            session.add(current_project)
+
+            all_tasks = list(session.exec(select(Task)).all())
+            ids_list = [task.id for task in self.project_tasks]
+
+            for task in all_tasks:
+                if task.id in ids_list:
+                    task.project_id = id_
+                else:
+                    if task.project_id == id_:
+                        task.project_id = None
+
+            session.commit()
+
+        return rx.redirect("/projects")
+
+    def delete_project(self, project: Project):
+        with rx.session() as session:
+            current_project = session.exec(
+                select(Project).where(Project.id == project["id"])
+            ).one()
+
+            session.delete(current_project)
+            session.commit()
+
+        self.initialize()
+        return rx.redirect("/projects")
 
     @rx.var
     def get_status_line(self) -> str:
@@ -77,6 +179,7 @@ class BasicChipsState(TaskState):
         if self.user is None:
             return
 
+        self.initialize_project()
         self.load_tasks()
         self.load_tags()
         self.update_statuses()
@@ -92,6 +195,7 @@ class BasicChipsState(TaskState):
 
             self.available_tags = [str(tag) for tag in tags]
             self.projects = list(projects)
+            self.project_available_tasks = self.tasks
 
     def update_statuses(self):
         if self.user is None:
@@ -103,9 +207,6 @@ class BasicChipsState(TaskState):
             ).all()
 
             self.statuses = list(statuses)
-
-        for status in self.statuses:
-            print(status.name)
 
     def create_task(self):
         if self.task_date is not None:

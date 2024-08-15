@@ -18,7 +18,8 @@ class TaskState(AuthState):
     tasks_status: dict[int, Optional[Status]] = {}
     tasks_projects: dict[int, Optional[Project]] = {}
 
-    tasks_count_of_tags: dict[int, int] = defaultdict(int)
+    tasks_count_of_tags: defaultdict[int, int] = defaultdict(int)
+    tasks_count_of_projects: defaultdict[int, int] = defaultdict(int)
 
     tags: list[Tag] = []
     tags_str: list[str] = []
@@ -40,6 +41,7 @@ class TaskState(AuthState):
 
     def load_tasks(self):
         self.tasks_count_of_tags.clear()
+        self.tasks_count_of_projects.clear()
 
         with rx.session() as session:
             tasks = session.exec(
@@ -53,6 +55,9 @@ class TaskState(AuthState):
 
                 for tag in task.tags:
                     self.tasks_count_of_tags[tag.id] += 1
+
+                if task.project_id is not None:
+                    self.tasks_count_of_projects[task.project.id] += 1
 
             self.tasks.clear()
             for task in tasks:

@@ -1,9 +1,10 @@
 import reflex as rx
 
 from .dialog.dialog_tasks import BasicChipsState, make_dialog_content
+from .dialog.dialog_project_creation import render_project_creation_dialog
 
 
-def render_footer():
+def render_footer(using_dialog="tasks"):
     return rx.hstack(
         rx.button(
             rx.image(
@@ -36,7 +37,13 @@ def render_footer():
                     bg="#7f7f7f",
                     align_items="center",
                 ),
-            ), make_dialog_content()
+            ),
+            rx.cond(
+                using_dialog == "tasks",
+                make_dialog_content(),
+                render_project_creation_dialog()
+            ),
+            on_open_change=lambda i: BasicChipsState.initialize_project()
         ),
         rx.button(
             rx.image(
@@ -56,7 +63,7 @@ def render_footer():
             height="100%",
             bg="#7f7f7f",
             text_align="center",
-            on_click=rx.redirect("/settings")
+            on_click=rx.redirect("/projects")
         ),
         justify="between",
         bg_color="#7f7f7f",
