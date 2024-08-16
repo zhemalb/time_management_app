@@ -8,7 +8,7 @@ from time_management.database.database import sql_execute
 
 
 class State(rx.State):
-    user: Optional[User] = rx.session().exec(select(User).where(User.id == 1)).one()
+    user: Optional[User] = None
 
     settings: Optional[dict] = None
 

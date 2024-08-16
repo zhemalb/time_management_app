@@ -26,6 +26,8 @@ class BasicChipsState(TaskState):
     statuses: list[Status] = []
     projects: list[Project] = []
 
+    statuses_dict: dict[int, Status] = {}
+
     tag_name: str = ""
     tag_desc: str = ""
 
@@ -45,18 +47,119 @@ class BasicChipsState(TaskState):
     actual_tasks_list: list[Task] = []
     nearst_tasks: int = 7
 
-    chosen_project: Project | None = rx.session().exec(
-        select(Project).where(Project.id == 3)
-    ).one_or_none()
+    chosen_project: Project | None = None
 
-    def load_long_terms_tasks(self):
+    def load_actual_tasks(self):
+        if self.user is None:
+            return
+
+        self.initialize()
+
         with rx.session() as session:
             data = list(session.exec(
-                select(Task)
+                select(Task).where(Task.user_id == self.user.id)
             ).all())
 
-            self.actual_tasks_list = [task for task in data if task.deadline is not None and datetime.timedelta(
-                task.deadline) - datetime.timedelta(datetime.datetime.now()) <= self.nearst_tasks]
+            nearst_tasks_timedelta = datetime.timedelta(days=self.nearst_tasks)
+            zero_timedelta = datetime.timedelta(days=0)
+
+            self.actual_tasks_list = [
+                task for task in data
+                if
+                task.deadline is not None and (task.deadline - datetime.datetime.now()) <= nearst_tasks_timedelta and (
+                        task.deadline - datetime.datetime.now()) >= zero_timedelta and not task.is_archive
+            ]
+
+        self.sort_actual_tasks()
+
+    def load_long_terms_tasks(self):
+        self.initialize()
+
+        with rx.session() as session:
+            data = list(session.exec(
+                select(Task).where(Task.user_id == self.user.id)
+            ).all())
+
+            nearst_tasks_timedelta = datetime.timedelta(days=self.nearst_tasks)
+
+            self.actual_tasks_list = [
+                task for task in data
+                if task.deadline is not None and (task.deadline - datetime.datetime.now()) > nearst_tasks_timedelta
+            ]
+
+        self.sort_actual_tasks()
+
+    def load_bin(self):
+        self.initialize()
+
+        with rx.session() as session:
+            data = list(session.exec(
+                select(Task).where(Task.user_id == self.user.id)
+            ).all())
+
+            self.actual_tasks_list = data
+
+        self.sort_actual_tasks()
+
+    def load_delegable_tasks(self):
+        self.initialize()
+
+        with rx.session() as session:
+            data = list(session.exec(
+                select(Task).where(Task.user_id == self.user.id)
+            ).all())
+
+            self.actual_tasks_list = [
+                task for task in data
+                if task.is_deligable and not task.is_archive
+            ]
+
+        self.sort_actual_tasks()
+
+    def load_postponed_tasks(self):
+        self.initialize()
+
+        with rx.session() as session:
+            data = list(session.exec(
+                select(Task).where(Task.user_id == self.user.id)
+            ).all())
+
+            self.actual_tasks_list = [
+                task for task in data
+                if task.deadline is None and not task.is_archive
+            ]
+
+        self.sort_actual_tasks()
+
+    def load_archive_tasks(self):
+        self.initialize()
+
+        with rx.session() as session:
+            data = list(session.exec(
+                select(Task).where(Task.user_id == self.user.id)
+            ).all())
+
+            self.actual_tasks_list = [
+                task for task in data
+                if task.is_archive
+            ]
+
+        self.sort_actual_tasks()
+
+    def load_complex_tasks(self):
+        self.initialize()
+
+        with rx.session() as session:
+            data = list(session.exec(
+                select(Task).where(Task.user_id == self.user.id)
+            ).all())
+
+            self.actual_tasks_list = [
+                task for task in data
+                if task.is_complex and not task.is_archive
+            ]
+
+        self.sort_actual_tasks()
 
     def change_status_open(self, value: bool):
         if not value:
@@ -120,7 +223,7 @@ class BasicChipsState(TaskState):
 
         with rx.session() as session:
             current_project = session.exec(
-                select(Project).where(Project.id == id_)
+                select(Project).where(Project.user_id == self.user.id).where(Project.id == id_)
             ).one()
 
             current_project.name = self.project_name
@@ -145,7 +248,7 @@ class BasicChipsState(TaskState):
     def delete_project(self, project: Project):
         with rx.session() as session:
             current_project = session.exec(
-                select(Project).where(Project.id == project["id"])
+                select(Project).where(Project.user_id == self.user.id).where(Project.id == project["id"])
             ).one()
 
             session.delete(current_project)
@@ -159,14 +262,30 @@ class BasicChipsState(TaskState):
         if self.selected_status is None:
             return "Статус"
 
-        return self.selected_status['name']
+        return self.selected_status.name
 
     @rx.var
     def get_project_line(self) -> str:
         if self.selected_project is None:
             return "Проект"
 
-        return self.selected_project['name']
+        return self.selected_project.name
+
+    def set_status_selected(self, status: Status):
+        with rx.session() as session:
+            current_status = session.exec(
+                select(Status).where(Status.user_id == self.user.id).where(Status.id == status["id"])
+            ).one()
+
+            self.selected_status = current_status
+
+    def set_project_selected(self, project: Project):
+        with rx.session() as session:
+            current_project = session.exec(
+                select(Project).where(Project.user_id == self.user.id).where(Project.id == project["id"])
+            ).one()
+
+            self.selected_project = current_project
 
     @rx.var
     def urgency(self):
@@ -177,7 +296,9 @@ class BasicChipsState(TaskState):
             return
 
         with rx.session() as session:
-            if session.exec(select(Status).where(Status.name == self.status_name)).one_or_none() is not None:
+            if session.exec(select(Status).where(
+                    Status.user_id == self.user.id).where(Status.name == self.status_name)).one_or_none() is not None:
+                print("Blocked here", self.status_name, self.user.id)
                 return
 
             new_status = Status(name=self.status_name, urgency=self.status_urgency, color=self.status_color,
@@ -185,7 +306,9 @@ class BasicChipsState(TaskState):
             session.add(new_status)
             session.commit()
 
-            self.initialize()
+            self.statuses_dict[new_status.id] = new_status
+
+        self.initialize()
 
     def initialize(self):
         if self.user is None:
@@ -220,6 +343,9 @@ class BasicChipsState(TaskState):
                 select(Status).where(Status.user_id == self.user.id)
             ).all()
 
+            for status in statuses:
+                self.statuses_dict[status.id] = status
+
             self.statuses = list(statuses)
 
     def create_task(self):
@@ -240,18 +366,18 @@ class BasicChipsState(TaskState):
             else:
                 task = Task(name=self.task_name, desc=self.task_desc, is_deligable=self.is_deligable,
                             is_complex=self.is_complex, user_id=self.user.id,
-                            project_id=self.selected_project["id"], deadline=self.deadline)
+                            project_id=self.selected_project.id, deadline=self.deadline)
         else:
             if self.selected_project is None:
                 task = Task(name=self.task_name, desc=self.task_desc, is_deligable=self.is_deligable,
                             is_complex=self.is_complex, user_id=self.user.id,
-                            status_id=self.selected_status["id"], deadline=self.deadline)
+                            status_id=self.selected_status.id, deadline=self.deadline)
             else:
-                print(self.task_name, self.task_desc, self.is_deligable, self.is_complex, self.selected_project['id'],
-                      self.selected_status['id'], self.deadline)
+                print(self.task_name, self.task_desc, self.is_deligable, self.is_complex, self.selected_project.id,
+                      self.selected_status.id, self.deadline)
                 task = Task(name=self.task_name, desc=self.task_desc, is_deligable=self.is_deligable,
                             is_complex=self.is_complex, user_id=self.user.id,
-                            project_id=self.selected_project["id"], status_id=self.selected_status["id"],
+                            project_id=self.selected_project.id, status_id=self.selected_status.id,
                             deadline=self.deadline)
 
         with rx.session() as session:
@@ -263,8 +389,9 @@ class BasicChipsState(TaskState):
                     continue
 
                 result = session.exec(
-                    select(Tag).where(Tag.user_id == self.user.id and Tag.name == tag)
+                    select(Tag).where(Tag.user_id == self.user.id).where(Tag.name == tag)
                 ).one()
+                self.tasks_count_of_tags[result.id] += 1
 
                 session.add(TagTaskLink(tag_id=result.id, task_id=task.id))
 
@@ -284,7 +411,7 @@ class BasicChipsState(TaskState):
     def select_status(self, item: str):
         with rx.session() as session:
             result = session.exec(
-                select(Status).where(Status.user_id == self.user.id and Status.name == item)
+                select(Status).where(Status.user_id == self.user.id).where(Status.name == item)
             ).one()
 
             self.task_status = result
@@ -292,37 +419,68 @@ class BasicChipsState(TaskState):
     def select_project(self, item: str):
         with rx.session() as session:
             result = session.exec(
-                select(Project).where(Project.user_id == self.user.id and Project.name == item)
+                select(Project).where(Project.user_id == self.user.id).where(Project.name == item)
             ).one()
 
             self.task_project = result
 
-    def add_selected(self, item: str):
-        self.show_select = False
+    def add_selected(self, tag_name: str):
+        self.available_tags.remove(tag_name)
+        self.chosen_tags.append(tag_name)
 
-        self.available_tags.remove(item)
-        self.chosen_tags.append(item)
-
-    def remove_selected(self, item: str):
-        self.available_tags.append(item)
-        self.chosen_tags.remove(item)
+    def remove_selected(self, tag_name: str):
+        self.available_tags.append(tag_name)
+        self.chosen_tags.remove(tag_name)
 
     def add_tags_to_default(self, lst):
         for tag in lst:
-            self.add_selected(tag["name"])
+            self.add_selected(tag.name)
 
     def initialize_state(self, task: Task):
-        self.task_name = task["name"]
-        self.task_desc = task["desc"]
-        self.deadline = task["deadline"]
-        self.is_info = task["is_info"]
-        self.is_degibile = task["is_degibile"]
-        self.is_complex = task["is_complex"]
-        self.task_status = task["status"]
-        self.task_project = task["project"]
-        self.add_tags_to_default(task["tags"])
+        current_task = rx.session().exec(
+            select(Task).where(Task.id == task["id"])
+        ).one()
 
-    def remove_selection(self):
+        with rx.session() as session:
+            current_task = session.exec(
+                select(Task).where(Task.id == task["id"])
+            ).one()
+
+            self.task_name = current_task.name
+            self.task_desc = current_task.desc
+
+            if current_task.deadline is not None:
+                self.deadline = current_task.deadline
+                self.task_date = current_task.deadline.strftime("%Y-%m-%d")
+
+            self.is_archive = current_task.is_archive
+            self.is_deligable = current_task.is_deligable
+            self.is_complex = current_task.is_complex
+
+            self.task_project = current_task.project
+            self.selected_project = current_task.project
+
+            self.task_status = current_task.status
+            self.selected_status = current_task.status
+
+            current_tags_id = session.exec(
+                select(TagTaskLink.tag_id).where(TagTaskLink.task_id == current_task.id)
+            ).all()
+
+            current_tags = [session.exec(select(Tag).where(Tag.id == id_)).one() for id_ in current_tags_id]
+
+            self.chosen_tags = ["+"]
+            tags = session.exec(
+                select(Tag).where(Tag.user_id == self.user.id)
+            ).all()
+            self.available_tags = [str(tag) for tag in tags]
+
+            self.add_tags_to_default(current_tags)
+
+    def remove_selection(self, value: bool):
+        if value:
+            return
+
         self.show_select = False
         self.chosen_tags = ["+"]
 
@@ -335,10 +493,15 @@ class BasicChipsState(TaskState):
 
         self.task_name = ""
         self.task_desc = ""
+
         self.task_status = None
+        self.selected_status = None
+
         self.task_project = None
+        self.selected_project = None
+
         self.is_deligable = False
-        self.is_info = False
+        self.is_archive = False
         self.is_complex = False
         self.show_edit_buttons = 0
 
@@ -346,10 +509,12 @@ class BasicChipsState(TaskState):
         self.task_time = None
 
     def update_task(self, task: Task):
+        task_id = None
+
         with rx.session() as session:
             current_task = session.exec(
                 select(Task).where(Task.id == task["id"])
-            ).first()
+            ).one()
 
             if self.task_date is not None:
                 year, month, day = map(int, self.task_date.split('-'))
@@ -364,94 +529,141 @@ class BasicChipsState(TaskState):
             current_task.deadline = self.deadline
             current_task.name = self.task_name
             current_task.desc = self.task_desc
-            current_task.is_info = self.is_info
-            current_task.is_degibile = self.is_deligable
+            current_task.is_archive = self.is_archive
+            current_task.is_deligable = self.is_deligable
             current_task.is_complex = self.is_complex
 
-            if self.task_status is not None:
-                current_task.status_id = self.task_status["id"]
+            if self.selected_status is not None:
+                current_task.status_id = self.selected_status.id
 
-            if self.task_project is not None:
-                current_task.project_id = self.task_project["id"]
+            if self.selected_project is not None:
+                current_task.project_id = self.selected_project.id
 
             session.add(current_task)
             session.commit()
+            task_id = current_task.id
 
+        with rx.session() as session:
             result = session.exec(
-                select(TagTaskLink).where(TagTaskLink.task_id == current_task.id)
+                select(TagTaskLink).where(TagTaskLink.task_id == task_id)
             ).all()
 
             for res in result:
+                self.tasks_count_of_tags[res.tag_id] -= 1
                 session.delete(res)
-            session.commit()
+                session.commit()
 
+            print(self.chosen_tags)
             for tag in self.chosen_tags:
                 if tag == '+':
                     continue
 
-                result = session.exec(
-                    select(Tag).where(Tag.user_id == self.user.id and Tag.name == tag)
+                new_result = session.exec(
+                    select(Tag).where(Tag.user_id == self.user.id).where(Tag.name == tag)
                 ).one()
 
-                session.add(TagTaskLink(tag_id=result.id, task_id=current_task.id))
+                self.tasks_count_of_tags[new_result.id] += 1
+                session.add(TagTaskLink(tag_id=new_result.id, task_id=task_id))
 
             session.commit()
 
+        return rx.redirect(self.router.page.raw_path)
+
+    def remove_task(self, task: Task):
+        with rx.session() as session:
+            current_task = session.exec(
+                select(Task).where(Task.id == task["id"])
+            ).one()
+
+            session.delete(current_task)
+            session.commit()
+
+        self.remove_selection(False)
         return rx.redirect("/tasks")
 
+    def add_to_archive(self, task: Task):
+        with rx.session() as session:
+            current_task = session.exec(
+                select(Task).where(Task.id == task["id"])
+            ).one()
+
+            current_task.is_archive = True
+            session.add(current_task)
+            session.commit()
+
+        return rx.redirect(self.router.page.raw_path)
+
+    def remove_from_archive(self, task: Task):
+        with rx.session() as session:
+            current_task = session.exec(
+                select(Task).where(Task.id == task["id"])
+            ).one()
+
+            current_task.is_archive = False
+            session.add(current_task)
+            session.commit()
+
+        return rx.redirect(self.router.page.raw_path)
+
     def create_tag(self):
-        return
+        current_tag = Tag(name=self.tag_name, user_id=self.user.id)
+
+        with rx.session() as session:
+            session.add(current_tag)
+            session.commit()
+
+            self.available_tags.append(current_tag.name)
+
+    def sort_actual_tasks(self):
+        self.actual_tasks_list.sort(
+            key=lambda task: (1 if task.is_archive else (
+                task.deadline.toordinal() * 0.7 - (self.statuses_dict.get(
+                    task.status_id).urgency * 0.3) if self.statuses_dict.get(
+                    task.status_id) is not None else 0) if task.deadline else 1e9))
 
 
-def selected_item_chip(item: str) -> rx.Component:
+from time_management.pages.dialog.dialog_creation_tags import select_tags
+
+
+def selected_item_chip(tag_name: str) -> rx.Component:
     return rx.cond(
-        BasicChipsState.actions.contains(item),
-        rx.cond(
-            BasicChipsState.available_tags.length() > 0,
-            rx.badge(
-                item,
-                color_scheme="gray",
-                **chip_props,
-                border_radius="12px",
-                padding="0.5em",
-                margin="0.2em",
-                on_click=BasicChipsState.set_show_select(True),
-            ),
+        BasicChipsState.actions.contains(tag_name),
+        rx.dialog.root(
+            rx.dialog.trigger(
+                rx.button(
+                    "+",
+                    color_scheme="gray",
+                    **chip_props,
+                    border_radius="12px",
+                    padding="0.5em",
+                    margin="0.2em",
+                    display="block"
+                ),
+            ), select_tags()
         ),
         rx.badge(
-            item,
+            tag_name,
             rx.icon("circle-x", size=18),
             color_scheme="gray",
             **chip_props,
             border_radius="12px",
             padding="0.5em",
             margin="0.2em",
-            on_click=BasicChipsState.remove_selected(item),
+            on_click=BasicChipsState.remove_selected(tag_name),
         ),
     )
 
 
 def items_selector() -> rx.Component:
     return rx.vstack(
-        rx.cond(
-            BasicChipsState.show_select,
-            rx.select(
-                BasicChipsState.available_tags,
-                placeholder="Choose tags",
-                on_change=BasicChipsState.add_selected,
-                width="100%",
-                radius="large",
-                position="popper",
+        rx.flex(
+            rx.foreach(
+                BasicChipsState.chosen_tags,
+                selected_item_chip,
             ),
-            rx.flex(
-                rx.foreach(
-                    BasicChipsState.chosen_tags,
-                    selected_item_chip,
-                ),
-                wrap="wrap",
-                spacing="2",
-                justify_content="start",
-            )
+            wrap="wrap",
+            spacing="2",
+            justify_content="start",
         ),
         width="90%",
     )

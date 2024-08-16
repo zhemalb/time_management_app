@@ -6,10 +6,11 @@ from ..components.header import header
 from ..database.models import Task, Tag
 
 from .date_time_select import *
-from .task_edit import task_edit_buttons
 
 from .beautiful_tag_selection import BasicChipsState
 from .footer import render_footer
+
+from .dialog.dialog_task_edit import render_task_edit
 
 
 def get_badge(tag: Tag):
@@ -44,6 +45,10 @@ def render_task(task: Task):
         rx.hstack(
             rx.vstack(
                 rx.text(task.name, font_size="20px", font_weight="bold", font_style="Open Sans", color="white"),
+                rx.cond(
+                    task.is_archive,
+                    rx.text("В архиве", font_size="20px", wont_weight="bold", font_style="Open Sans", color="red"),
+                ),
                 rx.vstack(
                     rx.scroll_area(
                         rx.vstack(
@@ -89,7 +94,12 @@ def render_task(task: Task):
                     rx.hstack(
                         rx.cond(
                             task.deadline is not None,
-                            rx.text("test deadline value", color="white", font_style="Open Sans",
+                            rx.text(BasicChipsState.tasks_deadlines[task.id.to_int()],
+                                    color="white", font_style="Open Sans",
+                                    font_size="16px",
+                                    font_weight="bold"),
+                            rx.text("Отсутствует",
+                                    color="white", font_style="Open Sans",
                                     font_size="16px",
                                     font_weight="bold"),
                         ),
@@ -97,32 +107,40 @@ def render_task(task: Task):
                                 font_style="Open Sans",
                                 font_size="16px",
                                 font_weight="bold"),
-                        spacing="2"
-                    )
+                        spacing="4"
+                    ),
                 ),
                 padding="1vh 0px 0px 5vw",
                 margin_bottom="1vh",
                 width="90%"
             ),
             rx.vstack(
-                rx.button(
-                    rx.text("...", font_size="32", font_weight="bold", font_style="Open Sans", color="white"),
-                    background_color="#191919",
-                    margin="2px 4px 0px 0px"
+                rx.dialog.root(
+                    rx.dialog.trigger(
+                        rx.icon_button(
+                            rx.icon(
+                                tag="settings-2",
+                                color="white",
+                                height="20px",
+                            ),
+                            variant="ghost",
+                            on_click=BasicChipsState.initialize_state(task)
+                        ),
+                    ), render_task_edit(task),
+                    on_open_change=BasicChipsState.remove_selection,
                 ),
-                rx.cond(BasicChipsState.show_edit_buttons, task_edit_buttons(task)),
+                width="100%",
             ),
-            padding_right="10px",
+            padding_right="5px",
             width="100%",
         ),
         border_radius="12px",
-        border=f"2px solid",
-        border_color=task.status.color,
+        border=f"2px solid {BasicChipsState.tasks_status[task.id.to_int()].color}",
         width="100%"
     )
 
 
-def tasks_page() -> rx.Component:
+def tasks_page(title: str, desc: str) -> rx.Component:
     return rx.vstack(
         rx.vstack(
             header(),
@@ -133,14 +151,14 @@ def tasks_page() -> rx.Component:
         ),
         rx.vstack(
             rx.vstack(
-                rx.text("Current Tasks", font_size="28px", font_style="Open Sans", font_weight="900",
+                rx.text(title, font_size="28px", font_style="Open Sans", font_weight="900",
                         color="white"),
-                rx.text("All your tasks to do here", font_size="16px", font_style="Open Sans", font_weight="400",
+                rx.text(desc, font_size="16px", font_style="Open Sans", font_weight="400",
                         color="#777777"),
                 align_items="left",
                 spacing="0",
                 padding="0px",
-                width="100%",
+                width="90%",
                 height="100%",
             ),
             rx.vstack(
@@ -160,7 +178,7 @@ def tasks_page() -> rx.Component:
                     width="100%",
                     padding="5px"
                 ),
-                width="100%",
+                width="90%",
                 height="100%",
             ),
             rx.vstack(
@@ -171,20 +189,25 @@ def tasks_page() -> rx.Component:
                             render_task
                         ),
                         direction="column",
-                        width="100vw",
+                        width="90%",
                         spacing="4",
+                        align_items="center",
                     ),
                     type="always",
                     scrollbars="vertical",
                     width="100vw",
                     min_height="65vh",
+                    max_height="65vh",
+                    align_items="center"
                 ),
                 width="100%",
                 height="100%",
+                margin="0px"
             ),
             width="100%",
+            height="100%",
             bg="#191919",
-            border_radius="10px",
+            align_items="center"
         ),
         rx.vstack(
             render_footer(),

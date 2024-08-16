@@ -6,6 +6,8 @@ from ..database.models import Project
 from .footer import render_footer
 from .beautiful_tag_selection import BasicChipsState
 
+from .dialog.dialog_choose import render_choose_menu
+
 
 def render_project_badge(project: Project) -> rx.Component:
     return rx.vstack(
@@ -28,47 +30,8 @@ def render_project_badge(project: Project) -> rx.Component:
                         ),
                         variant="ghost",
                     ),
-                ),
-                rx.dialog.content(
-                    rx.center(
-                        rx.vstack(
-                            rx.text(
-                                "Вы действительно хотите удалить этот проект?",
-                                font_style="Open Sans",
-                                font_weight="bold",
-                                font_size="20px",
-                                color="white",
-                                align="center"
-                            ),
-                            rx.grid(
-                                rx.dialog.close(
-                                    rx.chakra.button(
-                                        "Нет",
-                                        variant="ghost",
-                                        font_style="Open Sans",
-                                        font_size="18px",
-                                        color="white"
-                                    ),
-                                    rx.chakra.button(
-                                        "Да",
-                                        variant="ghost",
-                                        on_click=BasicChipsState.delete_project(project),
-                                        font_style="Open Sans",
-                                        font_size="18px",
-                                        color="white"
-                                    )
-                                )
-                            ),
-                            width="100%",
-                            height="100%",
-                            align_items="center"
-                        ),
-                        width="100%",
-                        bg="#191919",
-                    ),
-                    padding="0",
-                    bg="#191919"
-                )
+                ), render_choose_menu("Вы действительно хотите удалить проект?", "Да", "Нет",
+                                      BasicChipsState.delete_project(project))
             ),
             width="100%",
             justify="between",
@@ -162,6 +125,7 @@ def render_projects_page():
                     scrollbars="vertical",
                     width="90vw",
                     min_height="65vh",
+                    max_height="65vh",
                 ),
                 height="100%",
                 width="90%"

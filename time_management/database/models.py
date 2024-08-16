@@ -53,7 +53,7 @@ class TagTaskLink(rx.Model, table=True):
 class Tag(rx.Model, table=True):
     name: str
     desc: Optional[str] = None
-    color: str = "#505050"
+    color: str = "#777777"
 
     user_id: int = Field(foreign_key="user.id")
 
@@ -70,8 +70,8 @@ class Task(rx.Model, table=True):
     created_at: datetime.datetime = datetime.datetime.now(tz=datetime.timezone.utc)
     deadline: Optional[datetime.datetime] = None
 
-    is_info: bool = False
-    is_degibile: bool = False
+    is_archive: bool = False
+    is_deligable: bool = False
     is_complex: bool = False
 
     user_id: int = Field(foreign_key="user.id")

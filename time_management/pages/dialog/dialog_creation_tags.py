@@ -2,29 +2,20 @@ import reflex as rx
 
 from ..beautiful_tag_selection import BasicChipsState
 
-from .dialog_select_creation import status_creation_window
+from time_management.database.models import Tag
 
-from time_management.database.models import Project
+from .dialog_tag_creation import render_tag_creation
 
 
-def project_select(project: Project) -> rx.Component:
+def tag_select(tag: str) -> rx.Component:
     return rx.dialog.close(
-        rx.button(
-            rx.hstack(
-                rx.box(
-                    height="20px",
-                    width="20px",
-                    border_radius="1000px",
-                    bg=project.color,
-                ),
-                rx.text(project.name,
-                        font_style="Open Sans",
-                        font_size="14px",
-                        weight="bold",
-                        color="white"),
-                align="center",
-                position="relative",
-                width="100%",
+        rx.box(
+            rx.text(
+                tag,
+                font_style="Open Sans",
+                font_weight="bold",
+                font_size="16px",
+                color="white",
             ),
             width="100%",
             align_items="center",
@@ -34,25 +25,38 @@ def project_select(project: Project) -> rx.Component:
             opacity="0.75",
             cursor="pointer",
             bg="#191919",
-            on_click=BasicChipsState.set_project_selected(project)
+            on_click=BasicChipsState.add_selected(tag)
         )
     )
 
 
-def select_project():
+def select_tags():
     return rx.dialog.content(
         rx.center(
             rx.vstack(
+                rx.dialog.root(
+                    rx.dialog.trigger(
+                        rx.chakra.button(
+                            "(+) Создать тэг",
+                            color="white",
+                            font_style="Open Sans",
+                            font_weight="bold",
+                            font_size="16px",
+                            variant="ghost",
+                        ),
+                    ), render_tag_creation()
+                ),
                 rx.scroll_area(
                     rx.vstack(
                         rx.flex(
                             rx.foreach(
-                                BasicChipsState.projects,
-                                project_select
+                                BasicChipsState.available_tags,
+                                tag_select
                             ),
                             direction="column",
                             bg="#181818",
-                            align_items="center"
+                            align_items="center",
+                            width="100%",
                         ),
                         width="90%",
                         bg="#181818",

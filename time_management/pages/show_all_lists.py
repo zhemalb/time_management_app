@@ -1,97 +1,111 @@
+from typing import List
+
 import reflex as rx
 
-from .beautiful_tag_selection import BasicChipsState
+from ..components.header import header
+from ..database.models import Project
+
 from .footer import render_footer
+from .beautiful_tag_selection import BasicChipsState
 
 
-def render_list_button(callback: callable, icon_tag: str, title: str, desc: str, format_line: str,
-                       param):
-    return rx.button(
-        rx.vstack(
-            rx.hstack(
-                rx.icon(tag=icon_tag, color="black"),
-                width="100%",
-                height="100%"
+def render_list_badge(icon: str, name: str, desc: str, redirect: str) -> rx.Component:
+    return rx.vstack(
+        rx.hstack(
+            rx.icon(
+                tag=icon,
+                color="white",
+                height="25px",
+                width="25px",
             ),
-            rx.vstack(
-                rx.text(title, font_style="Open Sans", font_weight="bold", font_size="20px",
-                        color="black"),
-                rx.text(desc, font_style="Open Sans", font_size="14px",
-                        color="black", align="left"),
-                rx.text(format_line.format(param),
-                        font_style="Open Sans", font_size="12px", color="red"),
-                width="100%",
-                height="100%",
-                padding="0px",
-                spacing="1"
+            rx.text(
+                name,
+                font_style="Open Sans",
+                color="white",
+                font_weight="bold",
+                font_size="20px",
             ),
             width="100%",
-            height="100%",
+            align_items="center",
         ),
-        padding="5px",
-        background_color="white",
-        border_radius="12px",
-        border="2px solid #202020",
+        rx.vstack(
+            rx.text(
+                desc,
+                font_style="Open Sans",
+                color="#777777",
+                font_weight="regular",
+                font_size="15px",
+            )
+        ),
         width="100%",
-        height="100%",
-        on_click=callback
+        bg="#191919",
+        border_radius="12px",
+        border="2px solid #777777",
+        on_click=rx.redirect(redirect),
+        padding="10px"
     )
 
 
 def render_all_lists():
     return rx.vstack(
         rx.vstack(
-            rx.hstack(
-                rx.icon(name="bell", tag="air_vent"),
-                justify_content="space-between",
-                align_items="center",
-                padding="1em",
-                width="100%",
+            header(),
+            min_height="50px",
+            width="100%",
+            position="fixed",
+            top="0",
+        ),
+        rx.vstack(
+            rx.vstack(
+                rx.text("Списки", font_size="28px", font_style="Open Sans", font_weight="900",
+                        color="white"),
+                rx.text("Сгруппированные задачи", font_size="16px", font_style="Open Sans", font_weight="400",
+                        color="#777777"),
+                align_items="left",
+                spacing="0",
+                padding="0px",
+                width="90%",
+                height="100%"
             ),
             rx.vstack(
-                rx.vstack(
-                    rx.text("All lists", font_size="28px", font_style="Open Sans", font_weight="900"),
-                    rx.text("Grouped tasks for all your purposes", font_size="16px", font_style="Open Sans",
-                            font_weight="400",
-                            color="gray"),
-                    align_items="left",
-                    spacing="0",
-                    padding="0px",
-                    margin_left="5%"
+                rx.scroll_area(
+                    rx.flex(
+                        render_list_badge("hourglass", "Долгосрочные задачи", "О их дедлайне можно не переживать",
+                                          "/long_term"),
+                        render_list_badge("users", "Делегированные задачи", "Не забудьте написать исполнителю",
+                                          "/delegable"),
+                        render_list_badge("calendar-off", "Отложенные задачи", "Вернитесь к рассмотрению потом",
+                                          "/postponed"),
+                        render_list_badge("shapes", "Комплексные задачи", "Если над ними нужно поломать голову",
+                                          "/complex"),
+                        render_list_badge("archive", "Архив", "Если нужно просмотреть старые задачи", "/archive"),
+                        direction="column",
+                        width="90vw",
+                        spacing="4",
+                        align_items="center"
+                    ),
+                    type="always",
+                    scrollbars="vertical",
+                    width="90vw",
+                    min_height="65vh",
+                    max_height="65vh",
                 ),
-                width="100%",
                 height="100%",
+                width="90%"
             ),
             width="100%",
             height="100%",
+            align_items="center"
         ),
         rx.vstack(
-            rx.center(
-                rx.grid(
-                    render_list_button(BasicChipsState.initialize, "shopping-basket", "Basket",
-                                       "Storage of all your tasks",
-                                       "{0} tasks in your bucket", 13),
-                    render_list_button(BasicChipsState.initialize, "tag", "Long Term Tasks",
-                                       "You can think about they later",
-                                       "You have {0} long term tasks", 13),
-                    render_list_button(BasicChipsState.initialize, "users", "Delegable Tasks",
-                                       "Someone else will make it for you",
-                                       "You have {0} delegable tasks", 13),
-                    render_list_button(BasicChipsState.initialize, "clock-5", "Postponed Tasks",
-                                       "Someday then definitely...",
-                                       "You have {0} postponed tasks", 13),
-                    columns="1",
-                    spacing="5",
-                    width="90%",
-                    height="100%",
-                ),
-                width="100%",
-                height="100%"
-            ),
+            render_footer("project"),
+            position="absolute",
+            bottom="0",
             width="100%",
-            height="100%"
+            min_height="50px",
         ),
-        render_footer(),
-        width="100%",
-        height="100%"
-    ),
+        width=["100%", "100%", "55%", "50%", "35%"],
+        bg="#191919",
+        padding="0px",
+        box_shadow="0px 8px 16px 6px rgba(0, 0, 0, 0.25)"
+    )

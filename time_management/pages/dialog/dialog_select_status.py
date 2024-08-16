@@ -47,7 +47,7 @@ def menu_item(status: Status) -> rx.Component:
             opacity="0.75",
             cursor="pointer",
             bg="#191919",
-            on_click=BasicChipsState.set_selected_status(status)
+            on_click=BasicChipsState.set_status_selected(status)
         )
     )
 

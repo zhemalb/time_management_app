@@ -14,9 +14,10 @@ from time_management.database.models import Task, Tag, Status, Project, TagTaskL
 class TaskState(AuthState):
     tasks: list[Task] = []
 
-    tasks_tags: dict[int, list[Tag]] = {}
+    tasks_tags: dict[int, list[Tag]] = defaultdict(list)
     tasks_status: dict[int, Optional[Status]] = {}
     tasks_projects: dict[int, Optional[Project]] = {}
+    tasks_deadlines: dict[int, Optional[str]] = {}
 
     tasks_count_of_tags: defaultdict[int, int] = defaultdict(int)
     tasks_count_of_projects: defaultdict[int, int] = defaultdict(int)
@@ -33,6 +34,7 @@ class TaskState(AuthState):
     task_project: Project | None = None
     is_deligable: bool = False
     is_complex: bool = False
+    is_archive: bool = False
     show_edit_buttons: int = 0
     deadline: datetime.datetime | None = None
 
@@ -53,6 +55,11 @@ class TaskState(AuthState):
                 self.tasks_status[task.id] = task.status
                 self.tasks_projects[task.id] = task.project
 
+                if task.deadline is not None:
+                    self.tasks_deadlines[task.id] = task.deadline.strftime("%d/%m/%Y")
+                else:
+                    self.tasks_deadlines[task.id] = None
+
                 for tag in task.tags:
                     self.tasks_count_of_tags[tag.id] += 1
 
@@ -62,8 +69,6 @@ class TaskState(AuthState):
             self.tasks.clear()
             for task in tasks:
                 self.tasks.append(task)
-
-        self.tasks.sort(key=lambda task: -task.deadline.toordinal() if task.deadline else 0)
 
     def add_task(self):
         with rx.session() as session:

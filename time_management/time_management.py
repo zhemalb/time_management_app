@@ -20,10 +20,10 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 STYLES = {
     "::placeholder": {
-        "font-weight": "bold",
-        "font-size": "17px",
+        "font-weight": "regular",
+        "font-size": "16px",
         "font-style": "Open Sans",
-        "color": "#999999",
+        "color": "#777777",
     }
 }
 
@@ -43,7 +43,7 @@ def register() -> rx.Component:
         render_main_component(True),
         width="100%",
         height="100vh",
-        bg="white"
+        bg="#181818"
     )
 
 
@@ -54,14 +54,14 @@ def login() -> rx.Component:
         render_main_component(False),
         width="100%",
         height="100vh",
-        bg="white"
+        bg="#181818"
     )
 
 
-@rx.page("/tasks", on_load=BasicChipsState.initialize)
+@rx.page("/tasks", on_load=BasicChipsState.load_actual_tasks)
 def main_page():
     return rx.center(
-        tasks_page(),
+        tasks_page("Актуальные задачи", "Просто смотрите и делайте"),
         height="100vh",
         width="100%",
         bg="#191919"
@@ -88,23 +88,74 @@ def statuses():
     )
 
 
-@rx.page("/long_term_tasks", on_load=BasicChipsState.load_long_terms_tasks)
+@rx.page("/long_term", on_load=BasicChipsState.load_long_terms_tasks)
 def long_term_tasks():
     return rx.center(
-        tasks_page(),
+        tasks_page("Долгосрочные задачи", "О их дедлайне можно не переживать"),
         width="100%",
         height="100vh",
         bg="#191919"
     )
 
 
-# @rx.page("/projects")
-# def projects():
-#     return render_projects_page()
+@rx.page("/delegable", on_load=BasicChipsState.load_delegable_tasks)
+def long_term_tasks():
+    return rx.center(
+        tasks_page("Делегированные задачи", "Не забудьте написать исполнителю"),
+        width="100%",
+        height="100vh",
+        bg="#191919"
+    )
+
+
+@rx.page("/postponed", on_load=BasicChipsState.load_postponed_tasks)
+def long_term_tasks():
+    return rx.center(
+        tasks_page("Отложенные задачи", "Вернитесь к рассмотрению потом"),
+        width="100%",
+        height="100vh",
+        bg="#191919"
+    )
+
+
+@rx.page("/complex", on_load=BasicChipsState.load_complex_tasks)
+def long_term_tasks():
+    return rx.center(
+        tasks_page("Комплексные задачи", "Если над ними нужно поломать голову"),
+        width="100%",
+        height="100vh",
+        bg="#191919"
+    )
+
+
+@rx.page("/archive", on_load=BasicChipsState.load_archive_tasks)
+def long_term_tasks():
+    return rx.center(
+        tasks_page("Архив", "Если нужно просмотреть старые задачи"),
+        width="100%",
+        height="100vh",
+        bg="#191919"
+    )
+
 
 @rx.page("/lists")
 def lists():
-    return render_all_lists()
+    return rx.center(
+        render_all_lists(),
+        width="100%",
+        height="100vh",
+        bg="#191919"
+    )
+
+
+@rx.page("/bin", on_load=BasicChipsState.load_bin)
+def lists():
+    return rx.center(
+        tasks_page("Корзина", "Здесь ВСЕ твои задачи"),
+        width="100%",
+        height="100vh",
+        bg="#191919"
+    )
 
 
 speed_dial_menu = SpeedDialMenu.create

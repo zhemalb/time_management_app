@@ -24,6 +24,7 @@ def render_footer(using_dialog="tasks"):
             height="100%",
             bg="#7f7f7f",
             text_align="center",
+            on_click=rx.redirect("/bin")
         ),
         rx.dialog.root(
             rx.dialog.trigger(
